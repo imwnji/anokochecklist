@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
 import { useRef, useState } from 'react'
 import type { ChecklistItem as Item, Sticker } from '../types'
-import { GlassSticker } from './GlassSticker'
+import { DomeSticker } from './DomeSticker'
 import { StickerPicker } from './StickerPicker'
 
 export const SLOT_SIZE = 64
@@ -57,7 +57,7 @@ export function ChecklistItem({
       initial={{ opacity: 0, y: 12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, x: -40, transition: { duration: 0.2 } }}
-      className="glass-panel grid grid-cols-[1fr_auto] items-stretch overflow-hidden rounded-3xl"
+      className="paper grid grid-cols-[1fr_auto] items-stretch overflow-hidden rounded-2xl"
     >
       {/* Left: text + edit / delete */}
       <div className="flex min-w-0 flex-col justify-center gap-2 p-4">
@@ -73,7 +73,7 @@ export function ChecklistItem({
                 if (e.key === 'Escape') setEditing(false)
               }}
               aria-label="항목 수정"
-              className="rounded-xl border border-white/80 bg-white/80 px-3 py-2 outline-none focus:ring-2 focus:ring-fuchsia-300"
+              className="rounded-xl border border-line bg-paper/60 px-3 py-2 text-ink outline-none focus:border-sage focus:bg-sheet"
             />
             <StickerPicker
               stickers={stickers}
@@ -86,14 +86,14 @@ export function ChecklistItem({
               <button
                 type="button"
                 onClick={save}
-                className="rounded-xl bg-violet-600 px-3 py-1.5 text-sm font-bold text-white"
+                className="rounded-xl bg-sage px-3 py-1.5 text-sm font-bold text-white hover:bg-sage-deep"
               >
                 저장
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded-xl bg-white/70 px-3 py-1.5 text-sm font-bold text-[var(--ink-soft)]"
+                className="rounded-xl border border-line bg-sheet px-3 py-1.5 text-sm font-bold text-ink-soft"
               >
                 취소
               </button>
@@ -103,7 +103,7 @@ export function ChecklistItem({
           <>
             <p
               className={`break-words text-lg font-bold leading-snug transition-colors ${
-                item.done ? 'text-[var(--ink-soft)] line-through decoration-fuchsia-400 decoration-2' : ''
+                item.done ? 'text-ink-soft line-through decoration-sage decoration-2' : 'text-ink'
               }`}
             >
               {item.text}
@@ -112,14 +112,14 @@ export function ChecklistItem({
               <button
                 type="button"
                 onClick={startEdit}
-                className="rounded-lg bg-white/60 px-2.5 py-1 text-xs font-bold text-[var(--ink-soft)] transition hover:bg-white hover:text-[var(--ink)]"
+                className="rounded-lg border border-line px-2.5 py-1 text-xs font-bold text-ink-soft transition hover:bg-oat hover:text-ink"
               >
                 수정
               </button>
               <button
                 type="button"
                 onClick={() => onRemove(item.id)}
-                className="rounded-lg bg-white/60 px-2.5 py-1 text-xs font-bold text-rose-500 transition hover:bg-rose-50"
+                className="rounded-lg border border-line px-2.5 py-1 text-xs font-bold text-[#a5573f] transition hover:bg-oat"
               >
                 삭제
               </button>
@@ -135,11 +135,9 @@ export function ChecklistItem({
         aria-label={item.done ? `${item.text} 완료 취소` : `${item.text} 완료하기`}
         disabled={landing}
         onClick={() => slotRef.current && onToggle(item.id, slotRef.current.getBoundingClientRect())}
-        className={`flex w-24 items-center justify-center border-l border-white/70 transition-colors sm:w-28 ${
-          item.done
-            ? 'bg-gradient-to-br from-fuchsia-100/70 to-violet-100/70'
-            : 'bg-white/30 hover:bg-white/60'
-        } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-fuchsia-400`}
+        className={`flex w-24 items-center justify-center border-l border-dashed border-line transition-colors sm:w-28 ${
+          item.done ? 'bg-sage-soft/60' : 'bg-oat/50 hover:bg-oat'
+        } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-sage`}
       >
         <div
           ref={slotRef}
@@ -153,13 +151,13 @@ export function ChecklistItem({
               animate={{ scaleX: 1, scaleY: 1 }}
               transition={{ type: 'spring', stiffness: 700, damping: 12 }}
             >
-              <GlassSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
+              <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
             </motion.div>
           ) : (
             <div
-              className={`h-full w-full rounded-[30%] border-[3px] border-dashed ${
-                landing ? 'border-fuchsia-400 bg-fuchsia-200/40' : 'border-violet-300/80'
-              } flex items-center justify-center text-2xl font-black text-violet-300`}
+              className={`h-full w-full rounded-full border-2 border-dashed ${
+                landing ? 'border-sage bg-sage-soft/50' : 'border-beige'
+              } flex items-center justify-center text-2xl font-black text-beige`}
             >
               {!landing && '✓'}
             </div>

@@ -5,7 +5,6 @@ import { ChecklistInput } from './components/ChecklistInput'
 import { ChecklistItem } from './components/ChecklistItem'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
 import { useChecklist } from './hooks/useChecklist'
-import { fireCelebration, fireLandingBurst } from './lib/celebrate'
 import { newId } from './lib/checklistReducer'
 import { DEFAULT_STICKER_ID } from './lib/defaultStickers'
 
@@ -42,18 +41,13 @@ export default function App() {
     ])
   }
 
-  const handlePop = useCallback(
-    (_: Burst) => {
-      soundManager.playCelebration()
-      fireCelebration(reduced)
-    },
-    [reduced],
-  )
+  const handlePop = useCallback((_: Burst) => {
+    soundManager.playCelebration()
+  }, [])
 
   const handleLanded = useCallback(
     (burst: Burst) => {
       soundManager.playStick()
-      fireLandingBurst(burst.target, reduced)
       setBursts((b) => b.filter((x) => x.id !== burst.id))
       setJustLanded((s) => new Set(s).add(burst.itemId))
       setTimeout(
@@ -81,13 +75,10 @@ export default function App() {
       <motion.main animate={shake} className="mx-auto w-full max-w-2xl px-4 pb-24 pt-10 sm:pt-14">
         <header className="mb-6 flex items-end justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-black tracking-tight sm:text-5xl">
-              Anoko{' '}
-              <span className="bg-gradient-to-r from-fuchsia-500 to-violet-600 bg-clip-text text-transparent">
-                Checklist
-              </span>
+            <h1 className="text-4xl font-black tracking-tight text-ink sm:text-5xl">
+              Anoko <span className="text-sage">Checklist</span>
             </h1>
-            <p className="mt-1 text-sm font-bold text-[var(--ink-soft)]">
+            <p className="mt-1 text-sm font-bold text-ink-soft">
               {total === 0 ? '오늘 할 일을 추가해보세요' : `${doneCount} / ${total} 완료`}
             </p>
           </div>
@@ -96,22 +87,39 @@ export default function App() {
             onClick={toggleMute}
             aria-pressed={muted}
             aria-label={muted ? '소리 켜기' : '소리 끄기'}
-            className="glass-panel flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-xl"
+            className="paper flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink-soft transition hover:text-ink"
           >
-            {muted ? '🔇' : '🔊'}
+            <svg
+              viewBox="0 0 24 24"
+              width="22"
+              height="22"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              aria-hidden
+            >
+              <path d="M4 9v6h4l5 4V5L8 9H4z" />
+              {muted ? (
+                <path d="M17 9l5 6M22 9l-5 6" />
+              ) : (
+                <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
+              )}
+            </svg>
           </button>
         </header>
 
         {total > 0 && (
           <div
-            className="mb-6 h-3 overflow-hidden rounded-full bg-white/60 shadow-inner"
+            className="mb-6 h-2.5 overflow-hidden rounded-full border border-line bg-oat"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={total}
             aria-valuenow={doneCount}
           >
             <motion.div
-              className="h-full rounded-full bg-gradient-to-r from-yellow-300 via-pink-500 to-violet-600"
+              className="h-full rounded-full bg-sage"
               animate={{ width: `${(doneCount / total) * 100}%` }}
               transition={{ type: 'spring', bounce: 0.3, duration: 0.6 }}
             />
@@ -131,12 +139,12 @@ export default function App() {
         />
 
         {storageFull && (
-          <p className="mt-3 rounded-xl bg-rose-100/80 px-3 py-2 text-sm text-rose-700">
+          <p className="mt-3 rounded-xl border border-line bg-oat px-3 py-2 text-sm text-[#a5573f]">
             브라우저 저장 공간이 부족해 변경 사항이 저장되지 않았어요. 업로드한 스티커 일부를 삭제해주세요.
           </p>
         )}
 
-        <div className="mb-2 mt-8 grid grid-cols-[1fr_auto] px-4 text-xs font-bold tracking-widest text-[var(--ink-soft)] uppercase">
+        <div className="mb-2 mt-8 grid grid-cols-[1fr_auto] px-4 text-xs font-bold tracking-widest text-ink-soft uppercase">
           <span>To do</span>
           <span className="w-24 text-center sm:w-28">Done</span>
         </div>
@@ -165,7 +173,7 @@ export default function App() {
         </ul>
 
         {total === 0 && (
-          <p className="glass-panel mt-2 rounded-3xl p-8 text-center text-[var(--ink-soft)]">
+          <p className="paper mt-2 rounded-2xl p-8 text-center text-ink-soft">
             아직 항목이 없어요. 위에서 할 일과 스티커를 골라 추가하세요!
           </p>
         )}

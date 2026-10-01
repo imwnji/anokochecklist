@@ -1,8 +1,10 @@
 export interface Sticker {
   id: string
   name: string
-  /** data: URL or static URL */
+  /** Artwork with a transparent background (data: URL or static URL). */
   src: string
+  /** Die-cut silhouette (white, alpha = sticker outline), same size/padding as `src`. */
+  shape?: string
   custom?: boolean
 }
 

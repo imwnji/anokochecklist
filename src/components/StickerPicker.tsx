@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
-import { imageFileToStickerSrc } from '../lib/imageToSticker'
+import { imageFileToSticker } from '../lib/imageToSticker'
 import { newId } from '../lib/checklistReducer'
 import type { Sticker } from '../types'
-import { GlassSticker } from './GlassSticker'
+import { DomeSticker } from './DomeSticker'
 
 interface Props {
   stickers: Sticker[]
@@ -23,11 +23,12 @@ export function StickerPicker({ stickers, selectedId, onSelect, onUpload, onRemo
     setError(null)
     setBusy(true)
     try {
-      const src = await imageFileToStickerSrc(file)
+      const { src, shape } = await imageFileToSticker(file)
       const sticker: Sticker = {
         id: `custom-${newId()}`,
         name: file.name.replace(/\.[^.]+$/, '') || '내 스티커',
         src,
+        shape,
         custom: true,
       }
       onUpload(sticker)
@@ -42,7 +43,7 @@ export function StickerPicker({ stickers, selectedId, onSelect, onUpload, onRemo
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3" role="radiogroup" aria-label="스티커 선택">
+      <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="스티커 선택">
         {stickers.map((s) => {
           const selected = s.id === selectedId
           return (
@@ -53,20 +54,20 @@ export function StickerPicker({ stickers, selectedId, onSelect, onUpload, onRemo
                 aria-checked={selected}
                 title={s.name}
                 onClick={() => onSelect(s.id)}
-                className={`rounded-[32%] p-1 transition-transform hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500 ${
+                className={`flex items-center justify-center rounded-2xl border p-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
                   selected
-                    ? 'scale-110 ring-2 ring-fuchsia-500 ring-offset-2 ring-offset-white/40'
-                    : 'opacity-80 hover:opacity-100'
+                    ? 'border-sage bg-sage-soft'
+                    : 'border-transparent opacity-75 hover:bg-oat hover:opacity-100'
                 }`}
               >
-                <GlassSticker sticker={s} size={44} />
+                <DomeSticker sticker={s} size={52} />
               </button>
               {s.custom && (
                 <button
                   type="button"
                   onClick={() => onRemove(s.id)}
                   aria-label={`${s.name} 스티커 삭제`}
-                  className="absolute -right-1 -top-1 hidden h-5 w-5 items-center justify-center rounded-full bg-[var(--ink)] text-[11px] font-bold text-white shadow group-hover:flex group-focus-within:flex"
+                  className="absolute -right-1 -top-1 hidden h-5 w-5 items-center justify-center rounded-full border border-line bg-sheet text-[12px] font-bold text-ink-soft shadow-sm group-hover:flex group-focus-within:flex hover:text-ink"
                 >
                   ×
                 </button>
@@ -79,7 +80,7 @@ export function StickerPicker({ stickers, selectedId, onSelect, onUpload, onRemo
           type="button"
           onClick={() => fileRef.current?.click()}
           disabled={busy}
-          className="flex h-[52px] items-center gap-1.5 rounded-2xl border-2 border-dashed border-fuchsia-300 px-3 text-sm font-bold text-fuchsia-600 transition hover:border-fuchsia-500 hover:bg-white/50 disabled:opacity-50"
+          className="ml-1 flex h-[52px] items-center gap-1.5 rounded-2xl border border-dashed border-beige px-3 text-sm font-bold text-ink-soft transition hover:border-sage hover:text-sage-deep disabled:opacity-50"
         >
           <span className="text-lg leading-none">＋</span>
           {busy ? '처리 중…' : '이미지 업로드'}
@@ -92,7 +93,7 @@ export function StickerPicker({ stickers, selectedId, onSelect, onUpload, onRemo
           onChange={(e) => void handleFiles(e.target.files)}
         />
       </div>
-      {error && <p className="mt-2 text-sm text-rose-600">{error}</p>}
+      {error && <p className="mt-2 text-sm text-[#a5573f]">{error}</p>}
     </div>
   )
 }

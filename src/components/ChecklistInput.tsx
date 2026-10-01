@@ -29,7 +29,7 @@ export function ChecklistInput({
   }
 
   return (
-    <form onSubmit={submit} className="glass-panel rounded-3xl p-4 sm:p-5">
+    <form onSubmit={submit} className="paper rounded-2xl p-4 sm:p-5">
       <div className="flex gap-2">
         <input
           value={text}
@@ -37,17 +37,17 @@ export function ChecklistInput({
           placeholder="할 일을 입력하세요"
           aria-label="새 체크리스트 항목"
           maxLength={200}
-          className="min-w-0 flex-1 rounded-2xl border border-white/80 bg-white/70 px-4 py-3 text-base text-[var(--ink)] shadow-inner outline-none placeholder:text-[var(--ink-soft)] focus:border-fuchsia-400 focus:ring-2 focus:ring-fuchsia-300"
+          className="min-w-0 flex-1 rounded-xl border border-line bg-paper/60 px-4 py-3 text-base text-ink outline-none placeholder:text-ink-soft focus:border-sage focus:bg-sheet"
         />
         <button
           type="submit"
           disabled={!text.trim()}
-          className="shrink-0 rounded-2xl bg-gradient-to-b from-fuchsia-500 to-violet-600 px-5 font-bold text-white shadow-[0_8px_18px_-8px_rgb(124_58_237/0.8),inset_0_1px_0_rgb(255_255_255/0.4)] transition active:translate-y-px disabled:opacity-40"
+          className="shrink-0 rounded-xl bg-sage px-5 font-bold text-white shadow-[inset_0_-2px_0_rgb(0_0_0/0.08)] transition hover:bg-sage-deep active:translate-y-px disabled:bg-beige"
         >
           추가
         </button>
       </div>
-      <p className="mb-2 mt-4 text-xs font-bold tracking-widest text-[var(--ink-soft)] uppercase">Sticker</p>
+      <p className="mb-2 mt-4 text-xs font-bold tracking-widest text-ink-soft uppercase">Sticker</p>
       <StickerPicker
         stickers={stickers}
         selectedId={selectedStickerId}
