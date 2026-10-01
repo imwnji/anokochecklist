@@ -1,0 +1,8 @@
+node_modules
+dist
+*.tsbuildinfo
+.DS_Store
+# Licensed font: kept locally only, never committed (see README)
+public/fonts/
+# Copyrighted media (sticker art, sounds, videos): local only, never committed (see README)
+public/media/

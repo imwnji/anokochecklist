@@ -1,0 +1,123 @@
+@import 'tailwindcss';
+
+/* 그리운 하제체 is registered at runtime (src/lib/loadFont.ts): the font file is not in the repo. */
+
+@theme {
+  --font-sans: 'Griun Haje', Helvetica, Arial, sans-serif;
+  --font-serif: 'Griun Haje', Helvetica, Arial, sans-serif;
+  --font-mono: 'Griun Haje', Helvetica, Arial, sans-serif;
+
+  /* Drawing-paper palette: white, oatmeal, beige, sage green */
+  --color-paper: #f7f2e8;
+  --color-sheet: #fffdf8;
+  --color-oat: #efe7d8;
+  --color-beige: #e2d6c1;
+  --color-line: #e6dccb;
+  --color-ink: #3f3b31;
+  --color-ink-soft: #8c8473;
+  --color-sage: #8dbb78;
+  --color-sage-deep: #5f8b4e;
+  --color-sage-soft: #e3edd9;
+  --color-graphite: #6f685b;
+}
+
+/* Typography rule: every element in the app uses 그리운 하제체 (Helvetica/Arial while it loads). */
+html,
+body,
+*,
+*::before,
+*::after,
+input,
+button,
+textarea,
+select {
+  font-family: 'Griun Haje', Helvetica, Arial, sans-serif;
+  /* The font has a single (Regular) weight: don't smear it with fake bold. */
+  font-synthesis: none;
+}
+
+:root {
+  color-scheme: light;
+  /* fine paper grain */
+  --grain: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .38 0 0 0 0 .26 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  color: var(--color-ink);
+  background-color: var(--color-paper);
+  background-image: var(--grain);
+  background-size: 220px 220px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Paper sheets ----------
+   Flat sketchbook cards: the outline is a pencil <SketchBorder>, not a CSS border. */
+.paper {
+  position: relative;
+  background-color: var(--color-sheet);
+}
+
+/* ---------- Die-cut convex epoxy sticker ---------- */
+.dome-sticker {
+  position: relative;
+  isolation: isolate;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 1px rgb(90 70 40 / 0.28)) drop-shadow(0 4px 5px rgb(90 70 40 / 0.18));
+}
+
+.dome-sticker > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* clear resin around the artwork: milky, slightly warm */
+.dome-sticker__resin {
+  opacity: 0.6;
+}
+
+.dome-sticker__art {
+  opacity: 0.93;
+}
+
+/* Diagonal light sweep, clipped to the sticker outline; used right after landing. */
+.dome-sticker__sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+}
+
+.dome-sticker__sheen::before {
+  content: '';
+  position: absolute;
+  inset: -50%;
+  background: linear-gradient(115deg, transparent 42%, rgb(255 255 255 / 0.85) 50%, transparent 58%);
+  animation: sticker-sheen 0.8s ease-out forwards;
+}
+
+@keyframes sticker-sheen {
+  from {
+    transform: translateX(-60%);
+  }
+  to {
+    transform: translateX(60%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dome-sticker__sheen {
+    display: none;
+  }
+}
