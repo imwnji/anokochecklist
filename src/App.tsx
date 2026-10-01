@@ -67,7 +67,7 @@ export default function App() {
 
   const handleLanded = useCallback(
     (burst: Burst) => {
-      soundManager.playStick(burst.sticker.sound)
+      soundManager.playStick(burst.sticker.sound, { fadeIn: burst.sticker.soundFadeIn ?? true })
       setBursts((b) => b.filter((x) => x.id !== burst.id))
       setJustLanded((s) => new Set(s).add(burst.itemId))
       setTimeout(

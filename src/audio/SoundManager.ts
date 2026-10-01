@@ -2,9 +2,8 @@
  * Sticker sounds on the Web Audio API.
  *
  * - peel:  adhesive letting go — a crisp stereo crackle that speeds up, ending in a tiny release pop
- * - stick: a soft "thup" as the sticker touches down, then two fingertip strokes smoothing it
- *          down (close-up, panned left→right: the ASMR "tingle")
- * - after the stick, the sticker kind's own clip fades in gently (see `Sticker.sound`)
+ * - stick: "또깍" — a soft touch-down, then a brittle snap that crumbles like cracking wax
+ * - right after the stick, the sticker kind's own clip plays (see `Sticker.sound`)
  *
  * Peel/stick are synthesised sample-by-sample into stereo buffers, so every play is slightly
  * different, like the real thing. The AudioContext is created on the first user gesture.
@@ -13,8 +12,8 @@ type Ctor = typeof AudioContext
 
 /** Clip volume relative to the synthesised sticker sounds (clips are pre-normalised to −20 LUFS). */
 const CLIP_GAIN = 0.55
-/** The clip starts once the smoothing strokes are mostly done. */
-const CLIP_DELAY = 0.48
+/** The clip starts right after the snap has crumbled away. */
+const CLIP_DELAY = 0.2
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a)
 
@@ -170,53 +169,60 @@ class SoundManager {
   private stickBuffer(): AudioBuffer {
     const ctx = this.ctx!
     const sr = ctx.sampleRate
-    const dur = 0.62
+    const dur = 0.3
     const buf = ctx.createBuffer(2, Math.ceil(sr * dur), sr)
     const L = buf.getChannelData(0)
     const R = buf.getChannelData(1)
+    const add = (i: number, l: number, r = l) => {
+      if (i >= 0 && i < L.length) {
+        L[i] += l
+        R[i] += r
+      }
+    }
 
-    // Touch-down: a soft, muffled "thup".
+    // "또" — a soft, muffled touch-down.
     let lp = 0
-    for (let i = 0; i < sr * 0.05; i++) {
-      const env = Math.exp(-i / (sr * 0.009))
-      lp += 0.08 * (Math.random() * 2 - 1 - lp)
-      const body = Math.sin((2 * Math.PI * 135 * i) / sr) * Math.exp(-i / (sr * 0.012))
-      const v = (lp * 2.2 + body * 0.55) * env
-      L[i] += v
-      R[i] += v
+    for (let i = 0; i < sr * 0.03; i++) {
+      lp += 0.1 * (Math.random() * 2 - 1 - lp)
+      const body = Math.sin((2 * Math.PI * 230 * i) / sr) * Math.exp(-i / (sr * 0.007))
+      add(i, (lp * 1.6 + body * 0.4) * Math.exp(-i / (sr * 0.006)))
     }
-    // Air squeezing out from under the film: a few fine crackles.
-    for (let k = 0; k < 12; k++) {
-      SoundManager.click(L, R, sr, rand(0.01, 0.09), rand(0.05, 0.2), rand(-0.6, 0.6), rand(0.0004, 0.0012))
+
+    // "깍" — a brittle snap, like a wax seal cracking.
+    const snap = 0.055
+    SoundManager.click(L, R, sr, snap, 1, 0, 0.0015)
+    const s0 = Math.floor(snap * sr)
+    for (const [f, a, d] of [
+      [1850, 0.35, 0.011],
+      [3150, 0.28, 0.008],
+      [4900, 0.2, 0.005],
+    ]) {
+      // short resonances of the hard, brittle surface
+      for (let i = 0; i < sr * d * 5; i++)
+        add(s0 + i, Math.sin((2 * Math.PI * f * i) / sr) * a * Math.exp(-i / (sr * d)))
     }
-    // Two fingertip strokes smoothing the sticker down, sweeping across the stereo field.
-    const strokes = [
-      { at: 0.12, len: 0.17, from: -0.7, to: 0.5, amp: 0.55 },
-      { at: 0.3, len: 0.2, from: -0.4, to: 0.8, amp: 0.42 },
-    ]
-    for (const st of strokes) {
-      let a = 0
-      let b = 0
-      const s0 = Math.floor(st.at * sr)
-      const n = Math.floor(st.len * sr)
-      for (let i = 0; i < n && s0 + i < L.length; i++) {
-        const p = i / n
-        const w = Math.random() * 2 - 1
-        a += 0.6 * (w - a) // ~6 kHz lowpass
-        b += 0.16 * (w - b) // ~1.2 kHz lowpass
-        // band-passed friction with a slight skin-ridge flutter
-        const v = (a - b) * Math.sin(Math.PI * p) ** 1.5 * (0.8 + 0.2 * Math.sin(p * 90)) * st.amp
-        const pan = st.from + (st.to - st.from) * p
-        L[s0 + i] += v * Math.min(1, 1 - pan)
-        R[s0 + i] += v * Math.min(1, 1 + pan)
+
+    // Wax crumbling: a dense burst of tiny cracks right after the snap, thinning out.
+    for (let k = 0; k < 45; k++) {
+      const t = snap + 0.002 + -Math.log(1 - Math.random() * 0.98) * 0.018
+      const amp = rand(0.12, 0.55) * Math.exp(-(t - snap) / 0.05)
+      SoundManager.click(L, R, sr, t, amp, rand(-0.5, 0.5), rand(0.0003, 0.0012))
+    }
+    // …with some duller crumbs falling apart in between.
+    for (let k = 0; k < 10; k++) {
+      const t = snap + rand(0.004, 0.06)
+      const start = Math.floor(t * sr)
+      const n = Math.floor(rand(0.002, 0.005) * sr)
+      const amp = rand(0.08, 0.25)
+      const pan = rand(-0.4, 0.4)
+      let c = 0
+      for (let i = 0; i < n; i++) {
+        c += 0.3 * (Math.random() * 2 - 1 - c)
+        const v = c * amp * Math.exp((-5 * i) / n)
+        add(start + i, v * (1 - pan), v * (1 + pan))
       }
-      for (let k = 0; k < 10; k++) {
-        const p = Math.random()
-        const pan = st.from + (st.to - st.from) * p
-        SoundManager.click(L, R, sr, st.at + p * st.len, rand(0.04, 0.14), pan, rand(0.0004, 0.001))
-      }
     }
-    SoundManager.normalize(L, R, 0.55)
+    SoundManager.normalize(L, R, 0.6)
     return buf
   }
 
@@ -227,8 +233,8 @@ class SoundManager {
     this.playBuffer(this.peelBuffer(soft))
   }
 
-  /** Sticker landing and being smoothed down, then the sticker kind's own clip. */
-  playStick(clipUrl?: string) {
+  /** Sticker snapping on, then the sticker kind's own clip (optionally fading in). */
+  playStick(clipUrl?: string, { fadeIn = true }: { fadeIn?: boolean } = {}) {
     const ctx = this.ensure()
     if (!ctx || this._muted) return
     this.playBuffer(this.stickBuffer())
@@ -242,7 +248,8 @@ class SoundManager {
       const gain = this.ctx.createGain()
       const t = this.ctx.currentTime + CLIP_DELAY
       gain.gain.setValueAtTime(0, t)
-      gain.gain.linearRampToValueAtTime(CLIP_GAIN, t + 0.25)
+      // Without fade-in it still gets a few ms ramp, just enough to avoid a click.
+      gain.gain.linearRampToValueAtTime(CLIP_GAIN, t + (fadeIn ? 0.25 : 0.008))
       src.connect(gain).connect(this.master!)
       src.start(t)
       const playing = { src, gain }

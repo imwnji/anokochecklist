@@ -9,6 +9,8 @@ export interface Sticker {
   gloss?: number
   /** Clip that plays gently right after this sticker is stuck on. */
   sound?: string
+  /** Fade the clip in gently (default true). */
+  soundFadeIn?: boolean
   custom?: boolean
 }
 
