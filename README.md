@@ -30,7 +30,7 @@ src/
 ├─ hooks/useChecklist.ts      # reducer + localStorage 영속화
 └─ lib/
    ├─ checklistReducer.ts     # 추가/삭제/수정/완료/스티커 관리 (단위 테스트 포함)
-   ├─ defaultStickers.ts      # 기본 제공 SVG 스티커 6종
+   ├─ defaultStickers.ts      # 기본 제공 캐릭터 스티커 2종 (src/assets/stickers, 배경 제거 PNG)
    ├─ imageToSticker.ts       # 업로드 이미지 정사각 크롭 + 320px 축소(WebP)
    ├─ celebrate.ts            # confetti 폭발 프리셋
    └─ storage.ts
