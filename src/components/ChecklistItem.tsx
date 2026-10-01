@@ -14,7 +14,7 @@ interface Props {
   sticker: Sticker
   /** Sticker is currently flying towards this slot. */
   landing: boolean
-  /** Sticker just landed — play the squash + sheen. */
+  /** Sticker just landed — play the light sheen. */
   justLanded: boolean
   onToggle: (id: string, slotRect: DOMRect) => void
   /** This row's pill is the one being written in. */
@@ -128,14 +128,7 @@ export function ChecklistItem({
           style={{ width: SLOT_SIZE, height: SLOT_SIZE }}
         >
           {showSticker ? (
-            <motion.div
-              key={justLanded ? 'landed' : 'static'}
-              initial={justLanded ? { scaleX: 1.35, scaleY: 0.7 } : false}
-              animate={{ scaleX: 1, scaleY: 1 }}
-              transition={{ type: 'spring', stiffness: 700, damping: 12 }}
-            >
-              <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
-            </motion.div>
+            <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
           ) : (
             <div
               className={`relative isolate h-full w-full transition-opacity ${

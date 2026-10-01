@@ -2,6 +2,7 @@ import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import { useCallback, useState } from 'react'
 import { soundManager } from './audio/SoundManager'
 import { ChecklistItem, SLOT_SIZE } from './components/ChecklistItem'
+import { Clock } from './components/Clock'
 import { EDGE_STYLE, PencilFilters, Surface } from './components/Sketch'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
 import { STICKER_SHEET_ID, StickerSheet } from './components/StickerSheet'
@@ -120,6 +121,8 @@ export default function App() {
       </button>
 
       <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pb-16 pt-14">
+        <Clock />
+
         {/* 1. Sticker sheet */}
         <motion.div animate={sheetNudge}>
           <StickerSheet
