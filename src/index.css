@@ -1,9 +1,19 @@
 @import 'tailwindcss';
 
+/* 그리운 하제체 (© TypeE. Corp. & Nam Yeon-U — https://www.griun.co.kr/license).
+   Used as-is: the license forbids modifying the file, so it is not subset/converted. */
+@font-face {
+  font-family: 'Griun Haje';
+  src: url('./assets/fonts/Griun_HajeFont-Rg.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @theme {
-  --font-sans: Helvetica, Arial, sans-serif;
-  --font-serif: Helvetica, Arial, sans-serif;
-  --font-mono: Helvetica, Arial, sans-serif;
+  --font-sans: 'Griun Haje', Helvetica, Arial, sans-serif;
+  --font-serif: 'Griun Haje', Helvetica, Arial, sans-serif;
+  --font-mono: 'Griun Haje', Helvetica, Arial, sans-serif;
 
   /* Drawing-paper palette: white, oatmeal, beige, sage green */
   --color-paper: #f7f2e8;
@@ -19,7 +29,7 @@
   --color-graphite: #6f685b;
 }
 
-/* Typography rule: every element in the app uses Helvetica, Arial, sans-serif. */
+/* Typography rule: every element in the app uses 그리운 하제체 (Helvetica/Arial while it loads). */
 html,
 body,
 *,
@@ -29,7 +39,9 @@ input,
 button,
 textarea,
 select {
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: 'Griun Haje', Helvetica, Arial, sans-serif;
+  /* The font has a single (Regular) weight: don't smear it with fake bold. */
+  font-synthesis: none;
 }
 
 :root {

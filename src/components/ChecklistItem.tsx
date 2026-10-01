@@ -2,7 +2,7 @@ import { motion } from 'framer-motion'
 import { useRef } from 'react'
 import type { ChecklistItem as Item, Sticker } from '../types'
 import { DomeSticker } from './DomeSticker'
-import { SketchBorder } from './Sketch'
+import { EDGE_STYLE, SketchBorder, Surface } from './Sketch'
 
 export const SLOT_SIZE = 60
 
@@ -73,7 +73,7 @@ export function ChecklistItem({
               if (e.key === 'Escape') onCancelEdit(item.id)
             }}
             aria-label="할 일 입력"
-            className="relative min-w-0 flex-1 bg-transparent text-base font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-soft/60"
+            className="relative min-w-0 flex-1 bg-transparent text-lg text-ink outline-none placeholder:font-normal placeholder:text-ink-soft/60"
           />
           <button
             type="button"
@@ -97,7 +97,7 @@ export function ChecklistItem({
         >
           <PaperFill />
           <span
-            className={`relative truncate text-base font-bold ${
+            className={`relative truncate text-lg ${
               blank
                 ? 'font-normal text-ink-soft/50'
                 : item.done
@@ -135,14 +135,19 @@ export function ChecklistItem({
             </motion.div>
           ) : (
             <div
-              className={`relative h-full w-full transition-opacity ${
+              className={`relative isolate h-full w-full transition-opacity ${
                 landing ? '' : blank ? 'opacity-30' : 'opacity-60 group-hover:opacity-100'
               }`}
             >
-              <SketchBorder
-                radius="50%"
-                color={landing ? 'var(--color-sage-deep)' : 'var(--color-graphite)'}
-              />
+              {EDGE_STYLE === 'paper' ? (
+                // the spot the sticker goes on: a soft paper disc
+                <Surface fill={landing ? 'bg-sage-soft' : 'bg-sheet'} radius="50%" />
+              ) : (
+                <SketchBorder
+                  radius="50%"
+                  color={landing ? 'var(--color-sage-deep)' : 'var(--color-graphite)'}
+                />
+              )}
             </div>
           )}
         </div>

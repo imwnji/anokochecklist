@@ -2,7 +2,7 @@
  * Sticker sounds on the Web Audio API.
  *
  * - peel:  adhesive letting go — a crisp stereo crackle that speeds up, ending in a tiny release pop
- * - stick: "또깍" — a soft touch-down, then a brittle snap that crumbles like cracking wax
+ * - stick: a very small, cute "뽁" pop
  * - right after the stick, the sticker kind's own clip plays (see `Sticker.sound`)
  *
  * Peel/stick are synthesised sample-by-sample into stereo buffers, so every play is slightly
@@ -12,8 +12,8 @@ type Ctor = typeof AudioContext
 
 /** Clip volume relative to the synthesised sticker sounds (clips are pre-normalised to −20 LUFS). */
 const CLIP_GAIN = 0.55
-/** The clip starts right after the snap has crumbled away. */
-const CLIP_DELAY = 0.2
+/** The clip starts right after the pop. */
+const CLIP_DELAY = 0.1
 
 const rand = (a: number, b: number) => a + Math.random() * (b - a)
 
@@ -169,60 +169,25 @@ class SoundManager {
   private stickBuffer(): AudioBuffer {
     const ctx = this.ctx!
     const sr = ctx.sampleRate
-    const dur = 0.3
-    const buf = ctx.createBuffer(2, Math.ceil(sr * dur), sr)
+    const buf = ctx.createBuffer(2, Math.ceil(sr * 0.09), sr)
     const L = buf.getChannelData(0)
     const R = buf.getChannelData(1)
-    const add = (i: number, l: number, r = l) => {
-      if (i >= 0 && i < L.length) {
-        L[i] += l
-        R[i] += r
-      }
+    // "뽁": a tiny bubble pop — a sine whose pitch springs upward as it pops, gone in ~40 ms.
+    const f0 = rand(520, 600)
+    const f1 = f0 * 2.6
+    let phase = 0
+    for (let i = 0; i < L.length; i++) {
+      const t = i / sr
+      const f = f1 - (f1 - f0) * Math.exp(-t / 0.006)
+      phase += (2 * Math.PI * f) / sr
+      const env = Math.min(1, t / 0.0015) * Math.exp(-t / 0.011)
+      const v = (Math.sin(phase) + 0.18 * Math.sin(2 * phase)) * env
+      L[i] = v
+      R[i] = v
     }
-
-    // "또" — a soft, muffled touch-down.
-    let lp = 0
-    for (let i = 0; i < sr * 0.03; i++) {
-      lp += 0.1 * (Math.random() * 2 - 1 - lp)
-      const body = Math.sin((2 * Math.PI * 230 * i) / sr) * Math.exp(-i / (sr * 0.007))
-      add(i, (lp * 1.6 + body * 0.4) * Math.exp(-i / (sr * 0.006)))
-    }
-
-    // "깍" — a brittle snap, like a wax seal cracking.
-    const snap = 0.055
-    SoundManager.click(L, R, sr, snap, 1, 0, 0.0015)
-    const s0 = Math.floor(snap * sr)
-    for (const [f, a, d] of [
-      [1850, 0.35, 0.011],
-      [3150, 0.28, 0.008],
-      [4900, 0.2, 0.005],
-    ]) {
-      // short resonances of the hard, brittle surface
-      for (let i = 0; i < sr * d * 5; i++)
-        add(s0 + i, Math.sin((2 * Math.PI * f * i) / sr) * a * Math.exp(-i / (sr * d)))
-    }
-
-    // Wax crumbling: a dense burst of tiny cracks right after the snap, thinning out.
-    for (let k = 0; k < 45; k++) {
-      const t = snap + 0.002 + -Math.log(1 - Math.random() * 0.98) * 0.018
-      const amp = rand(0.12, 0.55) * Math.exp(-(t - snap) / 0.05)
-      SoundManager.click(L, R, sr, t, amp, rand(-0.5, 0.5), rand(0.0003, 0.0012))
-    }
-    // …with some duller crumbs falling apart in between.
-    for (let k = 0; k < 10; k++) {
-      const t = snap + rand(0.004, 0.06)
-      const start = Math.floor(t * sr)
-      const n = Math.floor(rand(0.002, 0.005) * sr)
-      const amp = rand(0.08, 0.25)
-      const pan = rand(-0.4, 0.4)
-      let c = 0
-      for (let i = 0; i < n; i++) {
-        c += 0.3 * (Math.random() * 2 - 1 - c)
-        const v = c * amp * Math.exp((-5 * i) / n)
-        add(start + i, v * (1 - pan), v * (1 + pan))
-      }
-    }
-    SoundManager.normalize(L, R, 0.6)
+    // the faintest lip-smack click at the very start
+    SoundManager.click(L, R, sr, 0, 0.12, 0, 0.0008)
+    SoundManager.normalize(L, R, 0.12)
     return buf
   }
 
@@ -233,7 +198,7 @@ class SoundManager {
     this.playBuffer(this.peelBuffer(soft))
   }
 
-  /** Sticker snapping on, then the sticker kind's own clip (optionally fading in). */
+  /** Sticker popping on, then the sticker kind's own clip (optionally fading in). */
   playStick(clipUrl?: string, { fadeIn = true }: { fadeIn?: boolean } = {}) {
     const ctx = this.ensure()
     if (!ctx || this._muted) return

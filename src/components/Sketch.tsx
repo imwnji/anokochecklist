@@ -87,3 +87,37 @@ export function SketchBorder({
     </svg>
   )
 }
+
+/**
+ * How object edges are drawn:
+ * - 'paper':  no outline; the fill's edge fades softly with a fibrous paper texture (#paper-edge)
+ * - 'pencil': flat fill plus a pencil-drawn dashed outline (the previous look)
+ * Switch back to 'pencil' to undo the paper-edge experiment.
+ */
+export const EDGE_STYLE: 'paper' | 'pencil' = 'paper'
+
+interface SurfaceProps {
+  /** Tailwind background class(es) for the fill, e.g. 'bg-oat'. */
+  fill: string
+  radius: number | string
+  /** Outline colour, used in 'pencil' mode only. */
+  pencilColor?: string
+  className?: string
+}
+
+/**
+ * Background layer of an object. Put it first inside a `relative isolate` parent: it sits
+ * behind the content (z -1), so the edge filter never touches text or stickers.
+ */
+export function Surface({ fill, radius, pencilColor, className = '' }: SurfaceProps) {
+  return (
+    <>
+      <span
+        aria-hidden
+        className={`pointer-events-none absolute inset-0 -z-10 transition-colors ${fill} ${className}`}
+        style={{ borderRadius: radius, filter: EDGE_STYLE === 'paper' ? 'url(#paper-edge)' : undefined }}
+      />
+      {EDGE_STYLE === 'pencil' && <SketchBorder radius={radius} color={pencilColor} />}
+    </>
+  )
+}

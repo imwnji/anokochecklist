@@ -2,7 +2,7 @@ import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from 
 import { useCallback, useState } from 'react'
 import { soundManager } from './audio/SoundManager'
 import { ChecklistItem, SLOT_SIZE } from './components/ChecklistItem'
-import { PencilFilters, SketchBorder } from './components/Sketch'
+import { EDGE_STYLE, PencilFilters, Surface } from './components/Sketch'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
 import { STICKER_SHEET_ID, StickerSheet } from './components/StickerSheet'
 import { useChecklist } from './hooks/useChecklist'
@@ -139,16 +139,17 @@ export default function App() {
 
         {/* 2. Gauge */}
         <div
-          className="relative h-4 rounded-full bg-oat"
+          className="relative isolate h-4"
           role="progressbar"
           aria-label="완료한 할 일"
           aria-valuemin={0}
           aria-valuemax={written.length}
           aria-valuenow={doneCount}
         >
-          <SketchBorder radius={8} strokeWidth={1.3} dash="6 4" />
+          <Surface fill="bg-beige/60" radius={999} />
           <motion.div
             className="h-full rounded-full bg-sage"
+            style={{ filter: EDGE_STYLE === 'paper' ? 'url(#paper-edge)' : undefined }}
             initial={false}
             animate={{ width: `${progress * 100}%` }}
             transition={{ type: 'spring', bounce: 0.3, duration: 0.6 }}
@@ -156,15 +157,15 @@ export default function App() {
         </div>
 
         {storageFull && (
-          <p className="relative rounded-2xl bg-oat px-4 py-2 text-sm text-[#a5573f]">
-            <SketchBorder radius={16} color="#a5573f" />
+          <p className="relative isolate px-4 py-2 text-sm text-[#a5573f]">
+            <Surface fill="bg-oat" radius={16} pencilColor="#a5573f" />
             브라우저 저장 공간이 부족해 변경 사항이 저장되지 않았어요. 업로드한 스티커 일부를 삭제해주세요.
           </p>
         )}
 
         {/* 3. To-do list: one panel */}
-        <section className="relative rounded-[36px] bg-oat px-3 pb-3 pt-4 sm:px-4" aria-label="할 일 목록">
-          <SketchBorder radius={36} />
+        <section className="relative isolate px-3 pb-3 pt-4 sm:px-4" aria-label="할 일 목록">
+          <Surface fill="bg-oat" radius={36} />
           <ul className="flex flex-col gap-3">
             <AnimatePresence initial={false}>
               {state.items.map((item) => (

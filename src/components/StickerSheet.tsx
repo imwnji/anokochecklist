@@ -5,7 +5,7 @@ import { imageFileToSticker } from '../lib/imageToSticker'
 import { newId } from '../lib/checklistReducer'
 import type { Sticker } from '../types'
 import { DomeSticker } from './DomeSticker'
-import { SketchBorder } from './Sketch'
+import { Surface } from './Sketch'
 
 export const STICKER_SHEET_ID = 'sticker-sheet'
 
@@ -68,8 +68,8 @@ export function StickerSheet({
   }
 
   return (
-    <section className="relative rounded-[32px] bg-oat px-3 py-5 sm:px-5" aria-label="스티커 판">
-      <SketchBorder radius={32} />
+    <section className="relative isolate px-3 py-5 sm:px-5" aria-label="스티커 판">
+      <Surface fill="bg-oat" radius={32} />
       <div id={STICKER_SHEET_ID} className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
         {stickers.map((s) => {
           const left = stockOf(s.id)
@@ -88,11 +88,11 @@ export function StickerSheet({
                     onSelect(s.id)
                   }
                 }}
-                className={`relative flex cursor-pointer rounded-[22px] px-1 py-1 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
-                  selected ? 'bg-sage-soft/80' : 'hover:bg-sheet/50'
-                }`}
+                className="group/kind relative isolate flex cursor-pointer rounded-[22px] px-1 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage"
               >
-                {selected && <SketchBorder radius={22} color="var(--color-sage-deep)" />}
+                {selected && (
+                  <Surface fill="bg-sage-soft/80" radius={22} pencilColor="var(--color-sage-deep)" />
+                )}
                 {Array.from({ length: STICKERS_PER_KIND }, (_, i) => (
                   <div
                     key={i}
@@ -140,9 +140,13 @@ export function StickerSheet({
                     whileHover={{ rotate: 90 }}
                     whileTap={{ scale: 0.9 }}
                     transition={{ type: 'spring', bounce: 0.5, duration: 0.5 }}
-                    className="absolute left-1/2 top-1/2 -ml-5 -mt-5 flex h-10 w-10 items-center sm:-ml-6 sm:-mt-6 sm:h-12 sm:w-12 justify-center rounded-full bg-sheet text-sage-deep shadow-[0_3px_8px_-3px_rgb(90_70_40/0.35)]"
+                    className="absolute left-1/2 top-1/2 -ml-5 -mt-5 flex h-10 w-10 items-center sm:-ml-6 sm:-mt-6 sm:h-12 sm:w-12 justify-center rounded-full text-sage-deep isolate"
                   >
-                    <SketchBorder radius="50%" color="var(--color-sage-deep)" />
+                    <Surface
+                      fill="bg-sheet shadow-[0_3px_8px_-3px_rgb(90_70_40/0.35)]"
+                      radius="50%"
+                      pencilColor="var(--color-sage-deep)"
+                    />
                     <svg
                       viewBox="0 0 24 24"
                       width="24"
@@ -182,9 +186,9 @@ export function StickerSheet({
           disabled={busy}
           aria-label="이미지로 스티커 만들기"
           title="이미지로 스티커 만들기"
-          className="relative flex h-8 w-8 items-center justify-center rounded-full text-lg sm:h-10 sm:w-10 sm:text-xl text-ink-soft transition hover:text-sage-deep disabled:opacity-50"
+          className="group/up relative isolate flex h-8 w-8 items-center justify-center rounded-full text-lg sm:h-10 sm:w-10 sm:text-xl text-ink-soft transition hover:text-sage-deep disabled:opacity-50"
         >
-          <SketchBorder radius="50%" strokeWidth={1.3} dash="5 4" />
+          <Surface fill="bg-sheet/60 group-hover/up:bg-sheet" radius="50%" />
           {busy ? '…' : '+'}
         </button>
         <input

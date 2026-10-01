@@ -3,7 +3,7 @@
 도화지 위에 볼록한 에폭시 스티커를 붙이며 완료를 기록하는 체크리스트 웹 앱.
 
 - **Stack**: Vite + React 19 + TypeScript, Tailwind CSS v4, Framer Motion, Web Audio API
-- **Font**: 전역 `Helvetica, Arial, sans-serif` 고정 (`src/index.css`)
+- **Font**: 전역 그리운 하제체 (`src/assets/fonts`, 로딩 전 Helvetica/Arial) — 라이선스상 파일을 수정(서브셋·변환)하지 않고 원본 TTF 그대로 사용
 - **Palette**: 화이트 · 오트밀 · 베이지 · 세이지 그린 (`@theme` 토큰: `paper`, `sheet`, `oat`, `beige`, `line`, `ink`, `sage` …) + 은은한 종이 결 텍스처
 
 ## 실행
@@ -46,12 +46,14 @@ src/
    └─ storage.ts
 ```
 
-## 스케치북 윤곽선 (`SketchBorder`)
+## 개체 가장자리 (`EDGE_STYLE`)
 
-카드·입력창·버튼·완료 자리의 윤곽선은 CSS border 대신 SVG 점선을 쓰고, 공용 `#pencil` 필터로
-선을 살짝 흔들고(feDisplacementMap) 흑연 입자처럼 끊어(노이즈 마스크) 연필로 그린 느낌을 냅니다.
-할 일 칸 자체는 윤곽선 없는 둥근 사각형으로, 가장자리만 `#paper-edge` 필터(미세한 섬유 노이즈 + 살짝 흐림)로
-종이 오린 것처럼 부드럽게 사라지게 했고, 스티커가 붙을 자리만 연필 점선 원으로 표시됩니다.
+`src/components/Sketch.tsx`의 `EDGE_STYLE` 한 줄로 전환합니다.
+
+- `'paper'` (현재): 윤곽선 없이, 판·게이지·버튼·스티커 자리·할 일 칸의 가장자리가 `#paper-edge` 필터
+  (미세한 섬유 노이즈 + 살짝 흐림)로 종이 오린 것처럼 부드럽게 사라짐. 배경만 `Surface` 레이어로 그려서
+  글자와 스티커는 또렷하게 유지.
+- `'pencil'`: 이전의 연필 점선 윤곽선(`SketchBorder`)으로 되돌아감.
 
 ## 볼록 스티커 (`DomeSticker`)
 
@@ -76,7 +78,7 @@ src/
 소리 (`src/audio/SoundManager.ts`, 효과음은 모두 Web Audio로 매번 조금씩 다르게 합성):
 
 1. **떼기** — 접착면이 떨어지는 미세한 크래클이 좌우로 흩어지며 점점 빨라지다 '톡' 하고 떨어짐
-2. **붙이기** — '또깍': 부드러운 착지 후 왁스가 깨지듯 바스러지는 브리틀한 스냅
+2. **붙이기** — 아주 작고 귀여운 '뽁' (위로 튀는 짧은 방울 소리)
 3. **이어서** 스티커 종류별 소리(`src/assets/sounds/after-*.mp3`)가 흘러나옴 (복슬이는 페이드인 없이 바로, 뿔이는 잔잔하게 페이드인).
    두 파일은 −20 LUFS로 음량을 맞췄고, 새 스티커가 붙으면 이전 소리는 부드럽게 사라집니다.
 
