@@ -1,36 +1,24 @@
 import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from 'framer-motion'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { soundManager } from './audio/SoundManager'
-import { ChecklistItem } from './components/ChecklistItem'
+import { ChecklistItem, SLOT_SIZE } from './components/ChecklistItem'
 import { PencilFilters, SketchBorder } from './components/Sketch'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
 import { STICKER_SHEET_ID, StickerSheet } from './components/StickerSheet'
 import { useChecklist } from './hooks/useChecklist'
-import { newId, stockOf } from './lib/checklistReducer'
+import { STICKERS_PER_KIND, newId, stockOf } from './lib/checklistReducer'
 import { DEFAULT_STICKER_ID } from './lib/defaultStickers'
-
-const useNarrow = () => {
-  const query = '(max-width: 480px)'
-  const [narrow, setNarrow] = useState(() => window.matchMedia(query).matches)
-  useEffect(() => {
-    const mq = window.matchMedia(query)
-    const onChange = () => setNarrow(mq.matches)
-    mq.addEventListener('change', onChange)
-    return () => mq.removeEventListener('change', onChange)
-  }, [])
-  return narrow
-}
 
 export default function App() {
   const { state, dispatch, stickers, stickerById, storageFull } = useChecklist()
   const [selectedId, setSelectedId] = useState(DEFAULT_STICKER_ID)
   const [bursts, setBursts] = useState<Burst[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [justLanded, setJustLanded] = useState<Set<string>>(new Set())
   const [muted, setMuted] = useState(soundManager.muted)
   const reduced = useReducedMotion() ?? false
   const shake = useAnimationControls()
   const sheetNudge = useAnimationControls()
-  const narrow = useNarrow()
 
   const left = (id: string) => stockOf(state, id)
   // The chosen kind, or — once it runs out (or is deleted) — the next kind still on the sheet.
@@ -57,9 +45,9 @@ export default function App() {
       void sheetNudge.start({ x: [0, -6, 6, -4, 4, 0], transition: { duration: 0.35 } })
       return
     }
-    // Peel the right-most remaining copy of the active kind off the sheet.
+    // Peel the left-most remaining copy of the active kind off the sheet.
     const copy = document.querySelector(
-      `#${STICKER_SHEET_ID} [data-sticker-id="${activeSticker.id}"][data-copy="${left(activeSticker.id) - 1}"]`,
+      `#${STICKER_SHEET_ID} [data-sticker-id="${activeSticker.id}"][data-copy="${STICKERS_PER_KIND - left(activeSticker.id)}"]`,
     )
     const from = copy?.getBoundingClientRect()
     const visible = from && from.bottom > 0 && from.top < window.innerHeight
@@ -130,14 +118,15 @@ export default function App() {
         </svg>
       </button>
 
-      <motion.main animate={shake} className="mx-auto flex w-full max-w-xl flex-col gap-4 px-4 pb-16 pt-14">
+      <motion.main animate={shake} className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pb-16 pt-14">
         {/* 1. Sticker sheet */}
         <motion.div animate={sheetNudge}>
           <StickerSheet
             stickers={stickers}
             stockOf={left}
             selectedId={activeSticker?.id ?? ''}
-            size={narrow ? 31 : 50}
+            // same size as the stickers stuck on the list
+            size={SLOT_SIZE}
             onSelect={setSelectedId}
             onRestock={(id) => {
               soundManager.playTick()
@@ -186,7 +175,21 @@ export default function App() {
                   landing={landingIds.has(item.id)}
                   justLanded={justLanded.has(item.id)}
                   onToggle={handleToggle}
-                  onEdit={(id, text) => dispatch({ type: 'edit', id, text })}
+                  editing={editingId === item.id}
+                  onStartEdit={setEditingId}
+                  onCommit={(id, text, next) => {
+                    dispatch({ type: 'edit', id, text })
+                    if (next) {
+                      // Enter: carry on in the next blank row below, if there is one.
+                      const from = state.items.findIndex((i) => i.id === id)
+                      const blank = state.items.slice(from + 1).find((i) => !i.text && !i.done)
+                      setEditingId(blank?.id ?? null)
+                    } else {
+                      // Blur: only close if focus didn't already move on to another row.
+                      setEditingId((cur) => (cur === id ? null : cur))
+                    }
+                  }}
+                  onCancelEdit={(id) => setEditingId((cur) => (cur === id ? null : cur))}
                   onRemove={(id) => {
                     soundManager.playTick(false)
                     dispatch({ type: 'remove', id })

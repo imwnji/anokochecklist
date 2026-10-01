@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { ChecklistItem as Item, Sticker } from '../types'
 import { DomeSticker } from './DomeSticker'
 import { SketchBorder } from './Sketch'
@@ -15,24 +15,31 @@ interface Props {
   /** Sticker just landed — play the squash + sheen. */
   justLanded: boolean
   onToggle: (id: string, slotRect: DOMRect) => void
-  onEdit: (id: string, text: string) => void
+  /** This row's pill is the one being written in. */
+  editing: boolean
+  onStartEdit: (id: string) => void
+  /** Save the text; `next` = Enter was pressed, so move on to the next blank row. */
+  onCommit: (id: string, text: string, next: boolean) => void
+  onCancelEdit: (id: string) => void
   onRemove: (id: string) => void
 }
 
 /** One to-do row: a borderless rounded pill (tap to write in it) and the sticker spot. */
-export function ChecklistItem({ item, sticker, landing, justLanded, onToggle, onEdit, onRemove }: Props) {
+export function ChecklistItem({
+  item,
+  sticker,
+  landing,
+  justLanded,
+  editing,
+  onToggle,
+  onStartEdit,
+  onCommit,
+  onCancelEdit,
+  onRemove,
+}: Props) {
   const slotRef = useRef<HTMLDivElement>(null)
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(item.text)
-
   const startEdit = () => {
-    if (item.done) return
-    setDraft(item.text)
-    setEditing(true)
-  }
-  const save = () => {
-    onEdit(item.id, draft)
-    setEditing(false)
+    if (!item.done) onStartEdit(item.id)
   }
 
   const blank = !item.text
@@ -48,17 +55,21 @@ export function ChecklistItem({ item, sticker, landing, justLanded, onToggle, on
     >
       {/* The to-do itself: a pill with no outline */}
       {editing ? (
-        <div className="relative flex h-16 min-w-0 flex-1 items-center rounded-full bg-sheet pl-6 pr-2 ring-2 ring-sage/60">
+        <div className="relative flex h-12 min-w-0 flex-1 items-center rounded-full bg-sheet pl-5 pr-1 ring-2 ring-sage/60">
           <input
             autoFocus
-            value={draft}
+            defaultValue={item.text}
             maxLength={120}
             placeholder="할 일"
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={save}
+            enterKeyHint="next"
+            onBlur={(e) => onCommit(item.id, e.currentTarget.value, false)}
             onKeyDown={(e) => {
-              if (e.key === 'Enter') save()
-              if (e.key === 'Escape') setEditing(false)
+              // Ignore the Enter that confirms Korean (IME) composition.
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
+                e.preventDefault()
+                onCommit(item.id, e.currentTarget.value, true)
+              }
+              if (e.key === 'Escape') onCancelEdit(item.id)
             }}
             aria-label="할 일 입력"
             className="min-w-0 flex-1 bg-transparent text-lg font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-soft/60"
@@ -69,7 +80,7 @@ export function ChecklistItem({ item, sticker, landing, justLanded, onToggle, on
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => onRemove(item.id)}
             aria-label="이 칸 지우기"
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl text-ink-soft transition hover:bg-oat hover:text-[#a5573f]"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl text-ink-soft transition hover:bg-oat hover:text-[#a5573f]"
           >
             ×
           </button>
@@ -79,7 +90,7 @@ export function ChecklistItem({ item, sticker, landing, justLanded, onToggle, on
           type="button"
           onClick={startEdit}
           aria-label={blank ? '빈 칸, 눌러서 할 일 쓰기' : `${item.text}, 눌러서 고치기`}
-          className={`flex h-16 min-w-0 flex-1 items-center rounded-full bg-sheet px-6 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+          className={`flex h-12 min-w-0 flex-1 items-center rounded-full bg-sheet px-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
             item.done ? 'cursor-default' : 'hover:bg-sheet/70'
           }`}
         >

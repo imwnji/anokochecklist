@@ -21,8 +21,9 @@ interface Props {
 }
 
 /**
+/**
  * A sheet of stickers: several copies of each kind. Completing a to-do peels the
- * right-most remaining copy of the selected kind off the sheet, leaving the glossy
+ * left-most remaining copy of the selected kind off the sheet, leaving the glossy
  * backing-paper mark behind. An empty kind shows a refresh button that restocks it.
  */
 export function StickerSheet({
@@ -67,12 +68,9 @@ export function StickerSheet({
   }
 
   return (
-    <section className="relative rounded-[28px] bg-oat px-2 py-3 sm:px-4" aria-label="스티커 판">
-      <SketchBorder radius={28} />
-      <div
-        id={STICKER_SHEET_ID}
-        className="flex flex-wrap items-center justify-center gap-x-2 gap-y-2 sm:gap-x-4"
-      >
+    <section className="relative rounded-[32px] bg-oat px-3 py-5 sm:px-5" aria-label="스티커 판">
+      <SketchBorder radius={32} />
+      <div id={STICKER_SHEET_ID} className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
         {stickers.map((s) => {
           const left = stockOf(s.id)
           const selected = s.id === selectedId
@@ -111,7 +109,8 @@ export function StickerSheet({
                       className="absolute inset-0 h-full w-full object-contain opacity-70"
                     />
                     <AnimatePresence initial={false}>
-                      {i < left && (
+                      {/* peeled from the left, so the remaining copies are the right-most ones */}
+                      {i >= STICKERS_PER_KIND - left && (
                         <motion.div
                           key="sticker"
                           className="absolute inset-0"

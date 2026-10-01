@@ -94,14 +94,22 @@ function FlyingSticker({
         cb.current.onLanded(burst)
         return
       }
-      // 1) Swoosh out of the list, right up to the viewer
+      // 0) Peel: the left edge lifts off the sheet first
+      await animate(
+        el,
+        { rotateY: [0, 42], rotate: [0, -6], y: [start.y, start.y - 6] },
+        { duration: 0.14, ease: 'easeOut' },
+      )
+      if (!mounted.current) return
+      // 1) Swoosh off the sheet, right up to the viewer
       await animate(
         el,
         {
           x: [start.x, apex.x],
-          y: [start.y, apex.y],
+          y: [start.y - 6, apex.y],
           scale: [start.scale, 1],
-          rotate: [0, -8],
+          rotateY: [42, 0],
+          rotate: [-6, -8],
           filter: [
             'drop-shadow(0 2px 2px rgb(90 70 40 / 0.3))',
             'drop-shadow(0 50px 40px rgb(90 70 40 / 0.25))',
@@ -143,6 +151,7 @@ function FlyingSticker({
         x: start.x,
         y: start.y,
         scale: start.scale,
+        transformPerspective: 600,
         willChange: 'transform, filter',
       }}
     >
