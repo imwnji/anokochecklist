@@ -5,6 +5,7 @@ import { ChecklistItem, SLOT_SIZE } from './components/ChecklistItem'
 import { EDGE_STYLE, PencilFilters, Surface } from './components/Sketch'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
 import { STICKER_SHEET_ID, StickerSheet } from './components/StickerSheet'
+import { CutoutVideoPopup, pickVideo, type VideoPopupState } from './components/CutoutVideo'
 import { useChecklist } from './hooks/useChecklist'
 import { STICKERS_PER_KIND, newId, stockOf } from './lib/checklistReducer'
 import { DEFAULT_STICKER_ID } from './lib/defaultStickers'
@@ -14,6 +15,7 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(DEFAULT_STICKER_ID)
   const [bursts, setBursts] = useState<Burst[]>([])
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [videoPopup, setVideoPopup] = useState<VideoPopupState | null>(null)
   const [justLanded, setJustLanded] = useState<Set<string>>(new Set())
   const [muted, setMuted] = useState(soundManager.muted)
   const reduced = useReducedMotion() ?? false
@@ -52,6 +54,8 @@ export default function App() {
       `#${STICKER_SHEET_ID} [data-sticker-id="${activeSticker.id}"][data-copy="${STICKERS_PER_KIND - left(activeSticker.id)}"]`,
     )
     if (activeSticker.sound) soundManager.preload(activeSticker.sound)
+    // warm the HTTP cache so the clip is ready when the sticker lands
+    if (activeSticker.video) void fetch(pickVideo(activeSticker.video)).catch(() => {})
     const from = copy?.getBoundingClientRect()
     const visible = from && from.bottom > 0 && from.top < window.innerHeight
     dispatch({ type: 'complete', id, stickerId: activeSticker.id })
@@ -68,6 +72,7 @@ export default function App() {
   const handleLanded = useCallback(
     (burst: Burst) => {
       soundManager.playStick(burst.sticker.sound, { fadeIn: burst.sticker.soundFadeIn ?? true })
+      if (burst.sticker.video) setVideoPopup({ key: burst.id, video: burst.sticker.video })
       setBursts((b) => b.filter((x) => x.id !== burst.id))
       setJustLanded((s) => new Set(s).add(burst.itemId))
       setTimeout(
@@ -222,6 +227,7 @@ export default function App() {
       </motion.main>
       {/* Outside the shaking <main> so its transform doesn't break position: fixed */}
       <StickerOverlay bursts={bursts} onPop={handlePop} onLanded={handleLanded} />
+      <CutoutVideoPopup popup={videoPopup} onDone={() => setVideoPopup(null)} />
     </>
   )
 }
