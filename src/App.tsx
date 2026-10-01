@@ -120,7 +120,7 @@ export default function App() {
         </svg>
       </button>
 
-      <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pb-16 pt-14">
+      <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-16 pt-14">
         <Clock />
 
         {/* 1. Sticker sheet */}
@@ -133,8 +133,6 @@ export default function App() {
             size={SLOT_SIZE}
             onSelect={setSelectedId}
             onRestock={(id) => dispatch({ type: 'restock', stickerId: id })}
-            onUpload={(sticker) => dispatch({ type: 'addSticker', sticker })}
-            onRemove={(id) => dispatch({ type: 'removeSticker', id })}
           />
         </motion.div>
 

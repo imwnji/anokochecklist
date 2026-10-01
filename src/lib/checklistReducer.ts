@@ -2,7 +2,7 @@ import type { ChecklistItem, ChecklistState, Sticker } from '../types'
 import { DEFAULT_STICKER_ID } from './defaultStickers'
 
 /** Copies of each sticker kind on a full sheet. */
-export const STICKERS_PER_KIND = 4
+export const STICKERS_PER_KIND = 5
 /** Empty to-do rows on a fresh checklist. */
 export const DEFAULT_ROWS = 5
 
