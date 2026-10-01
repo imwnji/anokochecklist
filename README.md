@@ -3,13 +3,16 @@
 도화지 위에 볼록한 에폭시 스티커를 붙이며 완료를 기록하는 체크리스트 웹 앱.
 
 - **Stack**: Vite + React 19 + TypeScript, Tailwind CSS v4, Framer Motion, Web Audio API
-- **Font**: 전역 그리운 하제체 (`src/assets/fonts`, 로딩 전 Helvetica/Arial) — 라이선스상 파일을 수정(서브셋·변환)하지 않고 원본 TTF 그대로 사용
+- **Font**: 그리운 하제체 (라이선스 파일이라 **저장소에 포함하지 않음**). 실행 시 `src/lib/loadFont.ts`가 불러옵니다:
+  `VITE_FONT_URL` 환경변수(라이선스 받은 웹폰트 주소)가 있으면 그것을, 없으면 git에 올라가지 않는
+  `public/fonts/Griun_HajeFont-Rg.ttf`를 사용합니다. 파일이 없으면 Helvetica/Arial로 표시됩니다.
 - **Palette**: 화이트 · 오트밀 · 베이지 · 세이지 그린 (`@theme` 토큰: `paper`, `sheet`, `oat`, `beige`, `line`, `ink`, `sage` …) + 은은한 종이 결 텍스처
 
 ## 실행
 
 ```bash
 npm install
+# (선택) 폰트: public/fonts/Griun_HajeFont-Rg.ttf 에 직접 복사
 npm run dev        # 개발 서버
 npm run build      # 타입체크 + 프로덕션 빌드
 npm test           # vitest 단위 테스트

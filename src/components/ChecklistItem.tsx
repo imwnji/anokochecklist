@@ -5,6 +5,8 @@ import { DomeSticker } from './DomeSticker'
 import { EDGE_STYLE, SketchBorder, Surface } from './Sketch'
 
 export const SLOT_SIZE = 60
+/** 3/4 of the row once the 64px sticker spot and the 12px gap are taken out; the pair is centred. */
+const PILL_WIDTH = 'calc((100% - 76px) * 0.75)'
 
 interface Props {
   item: Item
@@ -51,11 +53,11 @@ export function ChecklistItem({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -30, transition: { duration: 0.18 } }}
-      className="flex items-center gap-3"
+      className="flex items-center justify-center gap-3"
     >
       {/* The to-do itself: a pill with no outline */}
       {editing ? (
-        <div className="relative flex h-10 min-w-0 flex-1 items-center pl-5 pr-1">
+        <div className="relative flex h-10 items-center pl-5 pr-1" style={{ width: PILL_WIDTH }}>
           <PaperFill editing />
           <input
             autoFocus
@@ -91,7 +93,8 @@ export function ChecklistItem({
           type="button"
           onClick={startEdit}
           aria-label={blank ? '빈 칸, 눌러서 할 일 쓰기' : `${item.text}, 눌러서 고치기`}
-          className={`group/pill relative flex h-10 min-w-0 flex-1 items-center rounded-full px-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+          style={{ width: PILL_WIDTH }}
+          className={`group/pill relative flex h-10 items-center rounded-full px-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
             item.done ? 'cursor-default' : ''
           }`}
         >

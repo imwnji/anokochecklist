@@ -1,14 +1,6 @@
 @import 'tailwindcss';
 
-/* 그리운 하제체 (© TypeE. Corp. & Nam Yeon-U — https://www.griun.co.kr/license).
-   Used as-is: the license forbids modifying the file, so it is not subset/converted. */
-@font-face {
-  font-family: 'Griun Haje';
-  src: url('./assets/fonts/Griun_HajeFont-Rg.ttf') format('truetype');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
+/* 그리운 하제체 is registered at runtime (src/lib/loadFont.ts): the font file is not in the repo. */
 
 @theme {
   --font-sans: 'Griun Haje', Helvetica, Arial, sans-serif;

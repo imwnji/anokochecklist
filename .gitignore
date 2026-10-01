@@ -2,3 +2,5 @@ node_modules
 dist
 *.tsbuildinfo
 .DS_Store
+# Licensed font: kept locally only, never committed (see README)
+public/fonts/
