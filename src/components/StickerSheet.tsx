@@ -69,7 +69,7 @@ export function StickerSheet({
 
   return (
     <section className="relative isolate px-3 py-5 sm:px-5" aria-label="스티커 판">
-      <Surface fill="bg-oat" radius={32} />
+      <Surface fill="bg-board" radius={32} />
       <div id={STICKER_SHEET_ID} className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
         {stickers.map((s) => {
           const left = stockOf(s.id)

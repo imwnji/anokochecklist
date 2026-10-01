@@ -140,7 +140,8 @@ export default function App() {
 
         {/* 2. Gauge */}
         <div
-          className="relative isolate h-4"
+          // inset from the panels on both sides so it doesn't look glued to them
+          className="relative isolate mx-6 h-4 sm:mx-10"
           role="progressbar"
           aria-label="완료한 할 일"
           aria-valuemin={0}
@@ -166,7 +167,7 @@ export default function App() {
 
         {/* 3. To-do list: one panel */}
         <section className="relative isolate px-3 pb-3 pt-4 sm:px-4" aria-label="할 일 목록">
-          <Surface fill="bg-oat" radius={36} />
+          <Surface fill="bg-board" radius={36} />
           <ul className="flex flex-col gap-3">
             <AnimatePresence initial={false}>
               {state.items.map((item) => (
