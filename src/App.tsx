@@ -5,7 +5,7 @@ import { ChecklistItem, SLOT_SIZE } from './components/ChecklistItem'
 import { EDGE_STYLE, PencilFilters, Surface } from './components/Sketch'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
 import { STICKER_SHEET_ID, StickerSheet } from './components/StickerSheet'
-import { CutoutVideoPopup, pickVideo, type VideoPopupState } from './components/CutoutVideo'
+import { VideoPopup, pickVideo, type VideoPopupState } from './components/VideoPopup'
 import { useChecklist } from './hooks/useChecklist'
 import { STICKERS_PER_KIND, newId, stockOf } from './lib/checklistReducer'
 import { DEFAULT_STICKER_ID } from './lib/defaultStickers'
@@ -227,7 +227,7 @@ export default function App() {
       </motion.main>
       {/* Outside the shaking <main> so its transform doesn't break position: fixed */}
       <StickerOverlay bursts={bursts} onPop={handlePop} onLanded={handleLanded} />
-      <CutoutVideoPopup popup={videoPopup} onDone={() => setVideoPopup(null)} />
+      <VideoPopup popup={videoPopup} onDone={() => setVideoPopup(null)} />
     </>
   )
 }

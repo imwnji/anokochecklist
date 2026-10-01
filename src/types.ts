@@ -11,7 +11,7 @@ export interface Sticker {
   sound?: string
   /** Fade the clip in gently (default true). */
   soundFadeIn?: boolean
-  /** Background-removed clip (stacked-alpha MP4) shown mid-screen after sticking. */
+  /** Clip shown mid-screen (edges faded) right after sticking. */
   video?: { mp4: string; webm: string }
   custom?: boolean
 }
