@@ -33,15 +33,17 @@ export default function App() {
   const handleToggle = (id: string, slotRect: DOMRect) => {
     const item = state.items.find((i) => i.id === id)
     if (!item || landingIds.has(id)) return
+    // Inside the click, so browsers let audio start.
+    soundManager.unlock()
     if (item.done) {
-      soundManager.playTick(false)
+      // Peeling it back off the to-do.
+      soundManager.playPeel(true)
       dispatch({ type: 'uncheck', id })
       return
     }
     if (!item.text) return
     if (!activeSticker) {
       // Sheet is empty: nudge it so the refresh buttons get noticed.
-      soundManager.playTick(false)
       void sheetNudge.start({ x: [0, -6, 6, -4, 4, 0], transition: { duration: 0.35 } })
       return
     }
@@ -49,6 +51,7 @@ export default function App() {
     const copy = document.querySelector(
       `#${STICKER_SHEET_ID} [data-sticker-id="${activeSticker.id}"][data-copy="${STICKERS_PER_KIND - left(activeSticker.id)}"]`,
     )
+    if (activeSticker.sound) soundManager.preload(activeSticker.sound)
     const from = copy?.getBoundingClientRect()
     const visible = from && from.bottom > 0 && from.top < window.innerHeight
     dispatch({ type: 'complete', id, stickerId: activeSticker.id })
@@ -59,12 +62,12 @@ export default function App() {
   }
 
   const handlePop = useCallback((_: Burst) => {
-    soundManager.playCelebration()
+    soundManager.playPeel()
   }, [])
 
   const handleLanded = useCallback(
     (burst: Burst) => {
-      soundManager.playStick()
+      soundManager.playStick(burst.sticker.sound)
       setBursts((b) => b.filter((x) => x.id !== burst.id))
       setJustLanded((s) => new Set(s).add(burst.itemId))
       setTimeout(
@@ -128,10 +131,7 @@ export default function App() {
             // same size as the stickers stuck on the list
             size={SLOT_SIZE}
             onSelect={setSelectedId}
-            onRestock={(id) => {
-              soundManager.playTick()
-              dispatch({ type: 'restock', stickerId: id })
-            }}
+            onRestock={(id) => dispatch({ type: 'restock', stickerId: id })}
             onUpload={(sticker) => dispatch({ type: 'addSticker', sticker })}
             onRemove={(id) => dispatch({ type: 'removeSticker', id })}
           />
@@ -190,10 +190,7 @@ export default function App() {
                     }
                   }}
                   onCancelEdit={(id) => setEditingId((cur) => (cur === id ? null : cur))}
-                  onRemove={(id) => {
-                    soundManager.playTick(false)
-                    dispatch({ type: 'remove', id })
-                  }}
+                  onRemove={(id) => dispatch({ type: 'remove', id })}
                 />
               ))}
             </AnimatePresence>
@@ -201,10 +198,7 @@ export default function App() {
           <div className="mt-2 flex justify-center">
             <button
               type="button"
-              onClick={() => {
-                soundManager.playTick()
-                dispatch({ type: 'addRow' })
-              }}
+              onClick={() => dispatch({ type: 'addRow' })}
               aria-label="할 일 칸 추가"
               className="flex h-12 w-12 items-center justify-center rounded-full text-ink transition hover:bg-sheet/60"
             >

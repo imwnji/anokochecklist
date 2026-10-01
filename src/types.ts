@@ -7,6 +7,8 @@ export interface Sticker {
   shape?: string
   /** Strength of the dome's light reflection (1 = default). */
   gloss?: number
+  /** Clip that plays gently right after this sticker is stuck on. */
+  sound?: string
   custom?: boolean
 }
 
