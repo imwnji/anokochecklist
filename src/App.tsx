@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import { useCallback, useState } from 'react'
 import { soundManager } from './audio/SoundManager'
 import { ChecklistItem, SLOT_SIZE } from './components/ChecklistItem'
@@ -18,8 +18,6 @@ export default function App() {
   const [videoPopup, setVideoPopup] = useState<VideoPopupState | null>(null)
   const [justLanded, setJustLanded] = useState<Set<string>>(new Set())
   const [muted, setMuted] = useState(soundManager.muted)
-  const reduced = useReducedMotion() ?? false
-  const shake = useAnimationControls()
   const sheetNudge = useAnimationControls()
 
   const left = (id: string) => stockOf(state, id)
@@ -69,26 +67,21 @@ export default function App() {
     soundManager.playPeel()
   }, [])
 
-  const handleLanded = useCallback(
-    (burst: Burst) => {
-      soundManager.playStick(burst.sticker.sound, { fadeIn: burst.sticker.soundFadeIn ?? true })
-      if (burst.sticker.video) setVideoPopup({ key: burst.id, video: burst.sticker.video })
-      setBursts((b) => b.filter((x) => x.id !== burst.id))
-      setJustLanded((s) => new Set(s).add(burst.itemId))
-      setTimeout(
-        () =>
-          setJustLanded((s) => {
-            const next = new Set(s)
-            next.delete(burst.itemId)
-            return next
-          }),
-        1000,
-      )
-      if (!reduced)
-        void shake.start({ x: [0, -6, 5, -3, 2, 0], y: [0, 3, -2, 1, 0], transition: { duration: 0.3 } })
-    },
-    [reduced, shake],
-  )
+  const handleLanded = useCallback((burst: Burst) => {
+    soundManager.playStick(burst.sticker.sound, { fadeIn: burst.sticker.soundFadeIn ?? true })
+    if (burst.sticker.video) setVideoPopup({ key: burst.id, video: burst.sticker.video })
+    setBursts((b) => b.filter((x) => x.id !== burst.id))
+    setJustLanded((s) => new Set(s).add(burst.itemId))
+    setTimeout(
+      () =>
+        setJustLanded((s) => {
+          const next = new Set(s)
+          next.delete(burst.itemId)
+          return next
+        }),
+      1000,
+    )
+  }, [])
 
   const toggleMute = () => {
     soundManager.setMuted(!muted)
@@ -126,7 +119,7 @@ export default function App() {
         </svg>
       </button>
 
-      <motion.main animate={shake} className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pb-16 pt-14">
+      <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pb-16 pt-14">
         {/* 1. Sticker sheet */}
         <motion.div animate={sheetNudge}>
           <StickerSheet
@@ -224,8 +217,7 @@ export default function App() {
             </button>
           </div>
         </section>
-      </motion.main>
-      {/* Outside the shaking <main> so its transform doesn't break position: fixed */}
+      </main>
       <StickerOverlay bursts={bursts} onPop={handlePop} onLanded={handleLanded} />
       <VideoPopup popup={videoPopup} onDone={() => setVideoPopup(null)} />
     </>
