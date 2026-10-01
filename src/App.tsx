@@ -1,7 +1,8 @@
-import { AnimatePresence, motion, useAnimationControls, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion, useAnimationControls } from 'framer-motion'
 import { useCallback, useState } from 'react'
 import { soundManager } from './audio/SoundManager'
 import { ChecklistItem, SLOT_SIZE } from './components/ChecklistItem'
+import { Clock } from './components/Clock'
 import { EDGE_STYLE, PencilFilters, Surface } from './components/Sketch'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
 import { STICKER_SHEET_ID, StickerSheet } from './components/StickerSheet'
@@ -18,8 +19,6 @@ export default function App() {
   const [videoPopup, setVideoPopup] = useState<VideoPopupState | null>(null)
   const [justLanded, setJustLanded] = useState<Set<string>>(new Set())
   const [muted, setMuted] = useState(soundManager.muted)
-  const reduced = useReducedMotion() ?? false
-  const shake = useAnimationControls()
   const sheetNudge = useAnimationControls()
 
   const left = (id: string) => stockOf(state, id)
@@ -69,26 +68,21 @@ export default function App() {
     soundManager.playPeel()
   }, [])
 
-  const handleLanded = useCallback(
-    (burst: Burst) => {
-      soundManager.playStick(burst.sticker.sound, { fadeIn: burst.sticker.soundFadeIn ?? true })
-      if (burst.sticker.video) setVideoPopup({ key: burst.id, video: burst.sticker.video })
-      setBursts((b) => b.filter((x) => x.id !== burst.id))
-      setJustLanded((s) => new Set(s).add(burst.itemId))
-      setTimeout(
-        () =>
-          setJustLanded((s) => {
-            const next = new Set(s)
-            next.delete(burst.itemId)
-            return next
-          }),
-        1000,
-      )
-      if (!reduced)
-        void shake.start({ x: [0, -6, 5, -3, 2, 0], y: [0, 3, -2, 1, 0], transition: { duration: 0.3 } })
-    },
-    [reduced, shake],
-  )
+  const handleLanded = useCallback((burst: Burst) => {
+    soundManager.playStick(burst.sticker.sound, { fadeIn: burst.sticker.soundFadeIn ?? true })
+    if (burst.sticker.video) setVideoPopup({ key: burst.id, video: burst.sticker.video })
+    setBursts((b) => b.filter((x) => x.id !== burst.id))
+    setJustLanded((s) => new Set(s).add(burst.itemId))
+    setTimeout(
+      () =>
+        setJustLanded((s) => {
+          const next = new Set(s)
+          next.delete(burst.itemId)
+          return next
+        }),
+      1000,
+    )
+  }, [])
 
   const toggleMute = () => {
     soundManager.setMuted(!muted)
@@ -126,7 +120,9 @@ export default function App() {
         </svg>
       </button>
 
-      <motion.main animate={shake} className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pb-16 pt-14">
+      <main className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 pb-16 pt-14">
+        <Clock />
+
         {/* 1. Sticker sheet */}
         <motion.div animate={sheetNudge}>
           <StickerSheet
@@ -144,7 +140,8 @@ export default function App() {
 
         {/* 2. Gauge */}
         <div
-          className="relative isolate h-4"
+          // inset from the panels on both sides so it doesn't look glued to them
+          className="relative isolate mx-6 h-4 sm:mx-10"
           role="progressbar"
           aria-label="완료한 할 일"
           aria-valuemin={0}
@@ -170,7 +167,7 @@ export default function App() {
 
         {/* 3. To-do list: one panel */}
         <section className="relative isolate px-3 pb-3 pt-4 sm:px-4" aria-label="할 일 목록">
-          <Surface fill="bg-oat" radius={36} />
+          <Surface fill="bg-board" radius={36} />
           <ul className="flex flex-col gap-3">
             <AnimatePresence initial={false}>
               {state.items.map((item) => (
@@ -224,8 +221,7 @@ export default function App() {
             </button>
           </div>
         </section>
-      </motion.main>
-      {/* Outside the shaking <main> so its transform doesn't break position: fixed */}
+      </main>
       <StickerOverlay bursts={bursts} onPop={handlePop} onLanded={handleLanded} />
       <VideoPopup popup={videoPopup} onDone={() => setVideoPopup(null)} />
     </>

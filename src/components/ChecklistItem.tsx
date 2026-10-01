@@ -5,8 +5,11 @@ import { DomeSticker } from './DomeSticker'
 import { EDGE_STYLE, SketchBorder, Surface } from './Sketch'
 
 export const SLOT_SIZE = 60
-/** 3/4 of the row once the 64px sticker spot and the 12px gap are taken out; the pair is centred. */
-const PILL_WIDTH = 'calc((100% - 76px) * 0.75)'
+/**
+ * Row minus the 64px sticker spot and 12px gap: the full width on phones, 3/4 of it from `sm` up;
+ * the pill + spot pair is centred.
+ */
+const PILL_WIDTH = 'w-[calc(100%-76px)] sm:w-[calc((100%-76px)*0.75)]'
 
 interface Props {
   item: Item
@@ -14,7 +17,7 @@ interface Props {
   sticker: Sticker
   /** Sticker is currently flying towards this slot. */
   landing: boolean
-  /** Sticker just landed — play the squash + sheen. */
+  /** Sticker just landed — play the light sheen. */
   justLanded: boolean
   onToggle: (id: string, slotRect: DOMRect) => void
   /** This row's pill is the one being written in. */
@@ -57,7 +60,7 @@ export function ChecklistItem({
     >
       {/* The to-do itself: a pill with no outline */}
       {editing ? (
-        <div className="relative flex h-10 items-center pl-5 pr-1" style={{ width: PILL_WIDTH }}>
+        <div className={`relative flex h-10 items-center pl-5 pr-1 ${PILL_WIDTH}`}>
           <PaperFill editing />
           <input
             autoFocus
@@ -93,8 +96,7 @@ export function ChecklistItem({
           type="button"
           onClick={startEdit}
           aria-label={blank ? '빈 칸, 눌러서 할 일 쓰기' : `${item.text}, 눌러서 고치기`}
-          style={{ width: PILL_WIDTH }}
-          className={`group/pill relative flex h-10 items-center rounded-full px-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+          className={`group/pill relative flex h-10 ${PILL_WIDTH} items-center rounded-full px-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
             item.done ? 'cursor-default' : ''
           }`}
         >
@@ -128,14 +130,7 @@ export function ChecklistItem({
           style={{ width: SLOT_SIZE, height: SLOT_SIZE }}
         >
           {showSticker ? (
-            <motion.div
-              key={justLanded ? 'landed' : 'static'}
-              initial={justLanded ? { scaleX: 1.35, scaleY: 0.7 } : false}
-              animate={{ scaleX: 1, scaleY: 1 }}
-              transition={{ type: 'spring', stiffness: 700, damping: 12 }}
-            >
-              <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
-            </motion.div>
+            <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
           ) : (
             <div
               className={`relative isolate h-full w-full transition-opacity ${
