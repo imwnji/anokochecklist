@@ -8,6 +8,23 @@
   `public/fonts/Griun_HajeFont-Rg.ttf`를 사용합니다. 파일이 없으면 Helvetica/Arial로 표시됩니다.
 - **Palette**: 화이트 · 오트밀 · 베이지 · 세이지 그린 (`@theme` 토큰: `paper`, `sheet`, `oat`, `beige`, `line`, `ink`, `sage` …) + 은은한 종이 결 텍스처
 
+## 미디어·폰트 (저장소에 없음)
+
+스티커 이미지, 효과음, 영상, 폰트는 저작권 자료라 **git에 올라가지 않습니다** (`.gitignore`).
+각자 로컬에 아래처럼 두고 혼자 쓰는 용도입니다. 없으면 스티커·소리·영상이 비어 보이고 폰트는 Helvetica/Arial로 나옵니다.
+
+```
+public/
+├─ fonts/Griun_HajeFont-Rg.ttf
+└─ media/
+   ├─ stickers/  sticker-fluffy.png  sticker-fluffy-shape.png  sticker-horn.png  sticker-horn-shape.png
+   ├─ sounds/    after-fluffy.mp3  after-horn.mp3
+   └─ videos/    after-fluffy.mp4  after-fluffy.webm  after-horn.mp4  after-horn.webm
+```
+
+`npm run build` 시 이 폴더들이 `dist/`에 그대로 복사되므로, 빌드 결과물도 개인적으로만 사용하세요.
+영상은 `scripts/cutout_video.py`로 원본에서 다시 만들 수 있습니다.
+
 ## 실행
 
 ```bash
@@ -34,7 +51,6 @@ src/
 ├─ App.tsx                    # 레이아웃, 스티커 떼기·붙이기 오케스트레이션
 ├─ index.css                  # 전역 폰트, 팔레트 토큰, 종이 텍스처, 스티커 스타일
 ├─ audio/SoundManager.ts      # Web Audio 합성 효과음
-├─ assets/stickers/           # 기본 스티커: 배경 제거 아트 + 재단 모양(-shape) PNG
 ├─ components/
 │  ├─ StickerSheet.tsx        # 스티커 판 (재고, 뒷지 자국, 새로고침, 업로드)
 │  ├─ ChecklistItem.tsx       # 할 일 한 줄: 윤곽선 없는 둥근 칸 + 스티커 자리
@@ -82,10 +98,10 @@ src/
 
 1. **떼기** — 접착면이 떨어지는 미세한 크래클이 좌우로 흩어지며 점점 빨라지다 '톡' 하고 떨어짐
 2. **붙이기** — 아주 작고 귀여운 '뽁' (위로 튀는 짧은 방울 소리)
-3. **이어서** 스티커 종류별 소리(`src/assets/sounds/after-*.mp3`)가 흘러나옴 (복슬이는 페이드인 없이 바로, 뿔이는 잔잔하게 페이드인).
+3. **이어서** 스티커 종류별 소리(`public/media/sounds/after-*.mp3`)가 흘러나옴 (복슬이는 페이드인 없이 바로, 뿔이는 잔잔하게 페이드인).
    두 파일은 −20 LUFS로 음량을 맞췄고, 새 스티커가 붙으면 이전 소리는 부드럽게 사라집니다.
 
-붙인 직후에는 스티커 종류별 영상(`src/assets/videos/after-*`)이 화면 가운데에 살짝 투명하게 떠서 재생되고,
+붙인 직후에는 스티커 종류별 영상(`public/media/videos/after-*`)이 화면 가운데에 살짝 투명하게 떠서 재생되고,
 끝나면(또는 누르면) 사라집니다. 영상은 원본에서 캐릭터만 잉크 윤곽선을 따라 오려 배경을 지운 것으로,
 가장자리를 종이처럼 부드럽게 처리했습니다. 위쪽 절반은 색, 아래쪽 절반은 투명도인 "stacked alpha" 영상을
 캔버스에서 합성하므로 iOS Safari를 포함해 어디서나 투명 배경으로 보입니다 (H.264 MP4, 미지원 시 VP9 WebM).
