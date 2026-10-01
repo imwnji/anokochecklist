@@ -3,148 +3,108 @@ import { useRef, useState } from 'react'
 import type { ChecklistItem as Item, Sticker } from '../types'
 import { DomeSticker } from './DomeSticker'
 import { SketchBorder } from './Sketch'
-import { StickerPicker } from './StickerPicker'
 
-export const SLOT_SIZE = 64
+export const SLOT_SIZE = 60
 
 interface Props {
   item: Item
+  /** The sticker stuck on this item (when done). */
   sticker: Sticker
-  stickers: Sticker[]
   /** Sticker is currently flying towards this slot. */
   landing: boolean
   /** Sticker just landed — play the squash + sheen. */
   justLanded: boolean
   onToggle: (id: string, slotRect: DOMRect) => void
-  onEdit: (id: string, text: string, stickerId: string) => void
+  onEdit: (id: string, text: string) => void
   onRemove: (id: string) => void
-  onUploadSticker: (sticker: Sticker) => void
-  onRemoveSticker: (id: string) => void
 }
 
-export function ChecklistItem({
-  item,
-  sticker,
-  stickers,
-  landing,
-  justLanded,
-  onToggle,
-  onEdit,
-  onRemove,
-  onUploadSticker,
-  onRemoveSticker,
-}: Props) {
+/** One to-do row: a borderless rounded pill (tap to write in it) and the sticker spot. */
+export function ChecklistItem({ item, sticker, landing, justLanded, onToggle, onEdit, onRemove }: Props) {
   const slotRef = useRef<HTMLDivElement>(null)
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(item.text)
-  const [draftSticker, setDraftSticker] = useState(item.stickerId)
 
   const startEdit = () => {
+    if (item.done) return
     setDraft(item.text)
-    setDraftSticker(item.stickerId)
     setEditing(true)
   }
   const save = () => {
-    if (!draft.trim()) return
-    onEdit(item.id, draft, draftSticker)
+    onEdit(item.id, draft)
     setEditing(false)
   }
 
+  const blank = !item.text
   const showSticker = item.done && !landing
 
   return (
     <motion.li
       layout
-      initial={{ opacity: 0, y: 12, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, x: -40, transition: { duration: 0.2 } }}
-      className="paper grid grid-cols-[1fr_auto] items-stretch rounded-2xl"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -30, transition: { duration: 0.18 } }}
+      className="flex items-center gap-3"
     >
-      <SketchBorder radius={16} />
-      {/* Left: text + edit / delete */}
-      <div className="flex min-w-0 flex-col justify-center gap-2 p-4">
-        {editing ? (
-          <div className="flex flex-col gap-3">
-            <div className="relative">
-              <SketchBorder radius={12} />
-              <input
-                autoFocus
-                value={draft}
-                maxLength={200}
-                onChange={(e) => setDraft(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') save()
-                  if (e.key === 'Escape') setEditing(false)
-                }}
-                aria-label="항목 수정"
-                className="w-full rounded-xl bg-transparent px-3 py-2 text-ink outline-none focus:bg-paper/50"
-              />
-            </div>
-            <StickerPicker
-              stickers={stickers}
-              selectedId={draftSticker}
-              onSelect={setDraftSticker}
-              onUpload={onUploadSticker}
-              onRemove={onRemoveSticker}
-            />
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={save}
-                className="relative rounded-xl bg-sage px-3 py-1.5 text-sm font-bold text-white hover:bg-sage-deep"
-              >
-                <SketchBorder radius={12} color="var(--color-sage-deep)" />
-                저장
-              </button>
-              <button
-                type="button"
-                onClick={() => setEditing(false)}
-                className="relative rounded-xl px-3 py-1.5 text-sm font-bold text-ink-soft hover:text-ink"
-              >
-                <SketchBorder radius={12} />
-                취소
-              </button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <p
-              className={`break-words text-lg font-bold leading-snug transition-colors ${
-                item.done ? 'text-ink-soft line-through decoration-sage decoration-2' : 'text-ink'
-              }`}
-            >
-              {item.text}
-            </p>
-            <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={startEdit}
-                className="relative rounded-lg px-2.5 py-1 text-xs font-bold text-ink-soft transition hover:bg-oat/60 hover:text-ink"
-              >
-                <SketchBorder radius={8} strokeWidth={1.3} dash="5 4" />
-                수정
-              </button>
-              <button
-                type="button"
-                onClick={() => onRemove(item.id)}
-                className="relative rounded-lg px-2.5 py-1 text-xs font-bold text-[#a5573f] transition hover:bg-oat/60"
-              >
-                <SketchBorder radius={8} strokeWidth={1.3} dash="5 4" color="#a5573f" />
-                삭제
-              </button>
-            </div>
-          </>
-        )}
-      </div>
+      {/* The to-do itself: a pill with no outline */}
+      {editing ? (
+        <div className="relative flex h-16 min-w-0 flex-1 items-center rounded-full bg-sheet pl-6 pr-2 ring-2 ring-sage/60">
+          <input
+            autoFocus
+            value={draft}
+            maxLength={120}
+            placeholder="할 일"
+            onChange={(e) => setDraft(e.target.value)}
+            onBlur={save}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') save()
+              if (e.key === 'Escape') setEditing(false)
+            }}
+            aria-label="할 일 입력"
+            className="min-w-0 flex-1 bg-transparent text-lg font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-soft/60"
+          />
+          <button
+            type="button"
+            // Keep the input from blurring (and saving) before the delete goes through.
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => onRemove(item.id)}
+            aria-label="이 칸 지우기"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl text-ink-soft transition hover:bg-oat hover:text-[#a5573f]"
+          >
+            ×
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={startEdit}
+          aria-label={blank ? '빈 칸, 눌러서 할 일 쓰기' : `${item.text}, 눌러서 고치기`}
+          className={`flex h-16 min-w-0 flex-1 items-center rounded-full bg-sheet px-6 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+            item.done ? 'cursor-default' : 'hover:bg-sheet/70'
+          }`}
+        >
+          <span
+            className={`truncate text-lg font-bold ${
+              blank
+                ? 'font-normal text-ink-soft/50'
+                : item.done
+                  ? 'text-ink-soft line-through decoration-sage decoration-2'
+                  : 'text-ink'
+            }`}
+          >
+            {blank ? '할 일' : item.text}
+          </span>
+        </button>
+      )}
 
-      {/* Right: completion cell */}
+      {/* The sticker spot */}
       <button
         type="button"
         aria-pressed={item.done}
-        aria-label={item.done ? `${item.text} 완료 취소` : `${item.text} 완료하기`}
-        disabled={landing}
+        aria-label={item.done ? `${item.text} 완료 취소` : `${item.text || '빈 칸'} 완료하기`}
+        disabled={landing || (blank && !item.done)}
         onClick={() => slotRef.current && onToggle(item.id, slotRef.current.getBoundingClientRect())}
-        className="group flex w-24 items-center justify-center rounded-r-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage sm:w-28"
+        className="group flex h-16 w-16 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage disabled:cursor-default"
       >
         <div
           ref={slotRef}
@@ -161,32 +121,15 @@ export function ChecklistItem({
               <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
             </motion.div>
           ) : (
-            // Only the spot where the sticker goes is marked, with a pencil-dashed circle.
-            <div className="relative flex h-full w-full items-center justify-center">
+            <div
+              className={`relative h-full w-full transition-opacity ${
+                landing ? '' : blank ? 'opacity-30' : 'opacity-60 group-hover:opacity-100'
+              }`}
+            >
               <SketchBorder
                 radius="50%"
                 color={landing ? 'var(--color-sage-deep)' : 'var(--color-graphite)'}
-                className={landing ? '' : 'opacity-60 transition-opacity group-hover:opacity-100'}
               />
-              {!landing && (
-                <svg
-                  viewBox="0 0 24 24"
-                  width="24"
-                  height="24"
-                  className="opacity-40 transition-opacity group-hover:opacity-70"
-                  style={{ filter: 'url(#pencil)' }}
-                  aria-hidden
-                >
-                  <path
-                    d="M5 12.5l4.5 4.5L19 7.5"
-                    fill="none"
-                    stroke="var(--color-graphite)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-              )}
             </div>
           )}
         </div>
