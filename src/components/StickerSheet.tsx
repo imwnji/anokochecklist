@@ -1,8 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { STICKERS_PER_KIND } from '../lib/checklistReducer'
-import { imageFileToSticker } from '../lib/imageToSticker'
-import { newId } from '../lib/checklistReducer'
 import type { Sticker } from '../types'
 import { DomeSticker } from './DomeSticker'
 import { Surface } from './Sketch'
@@ -16,61 +14,27 @@ interface Props {
   size: number
   onSelect: (id: string) => void
   onRestock: (id: string) => void
-  onUpload: (sticker: Sticker) => void
-  onRemove: (id: string) => void
 }
 
-/**
 /**
  * A sheet of stickers: several copies of each kind. Completing a to-do peels the
  * left-most remaining copy of the selected kind off the sheet, leaving the glossy
  * backing-paper mark behind. An empty kind shows a refresh button that restocks it.
+ *
+ * Layout: one row of all copies from `md` (768px) up; narrower screens give each kind its own row.
  */
-export function StickerSheet({
-  stickers,
-  stockOf,
-  selectedId,
-  size,
-  onSelect,
-  onRestock,
-  onUpload,
-  onRemove,
-}: Props) {
-  const fileRef = useRef<HTMLInputElement>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [busy, setBusy] = useState(false)
+export function StickerSheet({ stickers, stockOf, selectedId, size, onSelect, onRestock }: Props) {
   // Skip the "stuck back on" pop for stickers already on the sheet at first render.
   const [ready, setReady] = useState(false)
   useEffect(() => setReady(true), [])
 
-  const handleFiles = async (files: FileList | null) => {
-    const file = files?.[0]
-    if (!file) return
-    setError(null)
-    setBusy(true)
-    try {
-      const { src, shape } = await imageFileToSticker(file)
-      const sticker: Sticker = {
-        id: `custom-${newId()}`,
-        name: file.name.replace(/\.[^.]+$/, '') || '내 스티커',
-        src,
-        shape,
-        custom: true,
-      }
-      onUpload(sticker)
-      onSelect(sticker.id)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : '업로드에 실패했어요.')
-    } finally {
-      setBusy(false)
-      if (fileRef.current) fileRef.current.value = ''
-    }
-  }
-
   return (
-    <section className="relative isolate px-3 py-5 sm:px-5" aria-label="스티커 판">
+    <section className="relative isolate px-2 py-5 sm:px-5" aria-label="스티커 판">
       <Surface fill="bg-board" radius={32} />
-      <div id={STICKER_SHEET_ID} className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3">
+      <div
+        id={STICKER_SHEET_ID}
+        className="flex flex-wrap items-center justify-center gap-x-4 gap-y-3 md:flex-nowrap md:gap-x-3"
+      >
         {stickers.map((s) => {
           const left = stockOf(s.id)
           const selected = s.id === selectedId
@@ -165,41 +129,10 @@ export function StickerSheet({
                   </motion.button>
                 )}
               </div>
-
-              {s.custom && (
-                <button
-                  type="button"
-                  onClick={() => onRemove(s.id)}
-                  aria-label={`${s.name} 스티커 삭제`}
-                  className="absolute -right-1 -top-1 z-10 hidden h-5 w-5 items-center justify-center rounded-full bg-sheet text-[12px] font-bold text-ink-soft shadow-sm group-hover:flex group-focus-within:flex hover:text-ink"
-                >
-                  ×
-                </button>
-              )}
             </div>
           )
         })}
-
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          disabled={busy}
-          aria-label="이미지로 스티커 만들기"
-          title="이미지로 스티커 만들기"
-          className="group/up relative isolate flex h-8 w-8 items-center justify-center rounded-full text-lg sm:h-10 sm:w-10 sm:text-xl text-ink-soft transition hover:text-sage-deep disabled:opacity-50"
-        >
-          <Surface fill="bg-sheet/60 group-hover/up:bg-sheet" radius="50%" />
-          {busy ? '…' : '+'}
-        </button>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => void handleFiles(e.target.files)}
-        />
       </div>
-      {error && <p className="mt-2 text-center text-sm text-[#a5573f]">{error}</p>}
     </section>
   )
 }
