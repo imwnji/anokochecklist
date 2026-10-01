@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion'
-import { useRef } from 'react'
+import { animate, motion } from 'framer-motion'
+import { useEffect, useRef } from 'react'
 import type { ChecklistItem as Item, Sticker } from '../types'
 import { DomeSticker } from './DomeSticker'
 import { EDGE_STYLE, SketchBorder, Surface } from './Sketch'
@@ -17,7 +17,7 @@ interface Props {
   sticker: Sticker
   /** Sticker is currently flying towards this slot. */
   landing: boolean
-  /** Sticker just landed — play the light sheen. */
+  /** Sticker just landed — play the squash + light sheen. */
   justLanded: boolean
   onToggle: (id: string, slotRect: DOMRect) => void
   /** This row's pill is the one being written in. */
@@ -130,7 +130,7 @@ export function ChecklistItem({
           style={{ width: SLOT_SIZE, height: SLOT_SIZE }}
         >
           {showSticker ? (
-            <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
+            <LandedSticker sticker={sticker} justLanded={justLanded} />
           ) : (
             <div
               className={`relative isolate h-full w-full transition-opacity ${
@@ -169,5 +169,28 @@ function PaperFill({ editing = false }: { editing?: boolean }) {
       }`}
       style={{ filter: 'url(#paper-edge)' }}
     />
+  )
+}
+
+/**
+ * A sticker stuck on a to-do. Right after landing it squashes flat and springs back.
+ * Started imperatively: the list's `AnimatePresence initial={false}` would otherwise
+ * suppress an `initial` prop on rows that were on screen from the start.
+ */
+function LandedSticker({ sticker, justLanded }: { sticker: Sticker; justLanded: boolean }) {
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!justLanded || !ref.current) return
+    const a = animate(
+      ref.current,
+      { scaleX: [1.35, 1], scaleY: [0.7, 1] },
+      { type: 'spring', stiffness: 700, damping: 12 },
+    )
+    return () => a.stop()
+  }, [justLanded])
+  return (
+    <div ref={ref}>
+      <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
+    </div>
   )
 }

@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 
-const timeFmt = new Intl.DateTimeFormat('ko-KR', { hour: 'numeric', minute: '2-digit' })
-const dateFmt = new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'long' })
+// "8:57 PM"
+const timeFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })
+// "10月 1日 木曜日"
+const WEEKDAYS = '日月火水木金土'
+const formatDate = (d: Date) => `${d.getMonth() + 1}月 ${d.getDate()}日 ${WEEKDAYS[d.getDay()]}曜日`
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const localDate = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
@@ -31,7 +34,7 @@ export function Clock() {
         {timeFmt.format(now)}
       </time>
       <time dateTime={localDate(now)} className="text-xl text-ink-soft">
-        {dateFmt.format(now)}
+        {formatDate(now)}
       </time>
     </div>
   )
