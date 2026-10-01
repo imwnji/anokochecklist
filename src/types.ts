@@ -5,6 +5,8 @@ export interface Sticker {
   src: string
   /** Die-cut silhouette (white, alpha = sticker outline), same size/padding as `src`. */
   shape?: string
+  /** Strength of the dome's light reflection (1 = default). */
+  gloss?: number
   custom?: boolean
 }
 

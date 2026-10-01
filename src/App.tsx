@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { soundManager } from './audio/SoundManager'
 import { ChecklistInput } from './components/ChecklistInput'
 import { ChecklistItem } from './components/ChecklistItem'
+import { PencilFilters, SketchBorder } from './components/Sketch'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
 import { useChecklist } from './hooks/useChecklist'
 import { newId } from './lib/checklistReducer'
@@ -35,9 +36,16 @@ export default function App() {
       return
     }
     dispatch({ type: 'setDone', id, done: true })
+    const sticker = stickerById(item.stickerId)
+    // The sticker peels off its tile in the sticker list, when that tile is on screen.
+    const tile = document.querySelector(
+      `#main-sticker-picker [data-sticker-id="${sticker.id}"] .dome-sticker`,
+    )
+    const from = tile?.getBoundingClientRect()
+    const visible = from && from.bottom > 0 && from.top < window.innerHeight
     setBursts((b) => [
       ...b,
-      { id: newId(), itemId: id, sticker: stickerById(item.stickerId), target: slotRect },
+      { id: newId(), itemId: id, sticker, from: visible ? from : undefined, target: slotRect },
     ])
   }
 
@@ -72,6 +80,7 @@ export default function App() {
 
   return (
     <>
+      <PencilFilters />
       <motion.main animate={shake} className="mx-auto w-full max-w-2xl px-4 pb-24 pt-10 sm:pt-14">
         <header className="mb-6 flex items-end justify-between gap-4">
           <div>
@@ -89,6 +98,7 @@ export default function App() {
             aria-label={muted ? '소리 켜기' : '소리 끄기'}
             className="paper flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-ink-soft transition hover:text-ink"
           >
+            <SketchBorder radius={12} />
             <svg
               viewBox="0 0 24 24"
               width="22"
@@ -112,12 +122,13 @@ export default function App() {
 
         {total > 0 && (
           <div
-            className="mb-6 h-2.5 overflow-hidden rounded-full border border-line bg-oat"
+            className="relative mb-6 h-3 rounded-full bg-sheet"
             role="progressbar"
             aria-valuemin={0}
             aria-valuemax={total}
             aria-valuenow={doneCount}
           >
+            <SketchBorder radius={6} strokeWidth={1.3} dash="6 4" />
             <motion.div
               className="h-full rounded-full bg-sage"
               animate={{ width: `${(doneCount / total) * 100}%` }}
@@ -139,7 +150,8 @@ export default function App() {
         />
 
         {storageFull && (
-          <p className="mt-3 rounded-xl border border-line bg-oat px-3 py-2 text-sm text-[#a5573f]">
+          <p className="relative mt-3 rounded-xl bg-oat px-3 py-2 text-sm text-[#a5573f]">
+            <SketchBorder radius={12} color="#a5573f" />
             브라우저 저장 공간이 부족해 변경 사항이 저장되지 않았어요. 업로드한 스티커 일부를 삭제해주세요.
           </p>
         )}
@@ -174,6 +186,7 @@ export default function App() {
 
         {total === 0 && (
           <p className="paper mt-2 rounded-2xl p-8 text-center text-ink-soft">
+            <SketchBorder radius={16} />
             아직 항목이 없어요. 위에서 할 일과 스티커를 골라 추가하세요!
           </p>
         )}

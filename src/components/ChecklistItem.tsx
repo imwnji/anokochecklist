@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { useRef, useState } from 'react'
 import type { ChecklistItem as Item, Sticker } from '../types'
 import { DomeSticker } from './DomeSticker'
+import { SketchBorder } from './Sketch'
 import { StickerPicker } from './StickerPicker'
 
 export const SLOT_SIZE = 64
@@ -57,24 +58,28 @@ export function ChecklistItem({
       initial={{ opacity: 0, y: 12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, x: -40, transition: { duration: 0.2 } }}
-      className="paper grid grid-cols-[1fr_auto] items-stretch overflow-hidden rounded-2xl"
+      className="paper grid grid-cols-[1fr_auto] items-stretch rounded-2xl"
     >
+      <SketchBorder radius={16} />
       {/* Left: text + edit / delete */}
       <div className="flex min-w-0 flex-col justify-center gap-2 p-4">
         {editing ? (
           <div className="flex flex-col gap-3">
-            <input
-              autoFocus
-              value={draft}
-              maxLength={200}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') save()
-                if (e.key === 'Escape') setEditing(false)
-              }}
-              aria-label="항목 수정"
-              className="rounded-xl border border-line bg-paper/60 px-3 py-2 text-ink outline-none focus:border-sage focus:bg-sheet"
-            />
+            <div className="relative">
+              <SketchBorder radius={12} />
+              <input
+                autoFocus
+                value={draft}
+                maxLength={200}
+                onChange={(e) => setDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') save()
+                  if (e.key === 'Escape') setEditing(false)
+                }}
+                aria-label="항목 수정"
+                className="w-full rounded-xl bg-transparent px-3 py-2 text-ink outline-none focus:bg-paper/50"
+              />
+            </div>
             <StickerPicker
               stickers={stickers}
               selectedId={draftSticker}
@@ -86,15 +91,17 @@ export function ChecklistItem({
               <button
                 type="button"
                 onClick={save}
-                className="rounded-xl bg-sage px-3 py-1.5 text-sm font-bold text-white hover:bg-sage-deep"
+                className="relative rounded-xl bg-sage px-3 py-1.5 text-sm font-bold text-white hover:bg-sage-deep"
               >
+                <SketchBorder radius={12} color="var(--color-sage-deep)" />
                 저장
               </button>
               <button
                 type="button"
                 onClick={() => setEditing(false)}
-                className="rounded-xl border border-line bg-sheet px-3 py-1.5 text-sm font-bold text-ink-soft"
+                className="relative rounded-xl px-3 py-1.5 text-sm font-bold text-ink-soft hover:text-ink"
               >
+                <SketchBorder radius={12} />
                 취소
               </button>
             </div>
@@ -112,15 +119,17 @@ export function ChecklistItem({
               <button
                 type="button"
                 onClick={startEdit}
-                className="rounded-lg border border-line px-2.5 py-1 text-xs font-bold text-ink-soft transition hover:bg-oat hover:text-ink"
+                className="relative rounded-lg px-2.5 py-1 text-xs font-bold text-ink-soft transition hover:bg-oat/60 hover:text-ink"
               >
+                <SketchBorder radius={8} strokeWidth={1.3} dash="5 4" />
                 수정
               </button>
               <button
                 type="button"
                 onClick={() => onRemove(item.id)}
-                className="rounded-lg border border-line px-2.5 py-1 text-xs font-bold text-[#a5573f] transition hover:bg-oat"
+                className="relative rounded-lg px-2.5 py-1 text-xs font-bold text-[#a5573f] transition hover:bg-oat/60"
               >
+                <SketchBorder radius={8} strokeWidth={1.3} dash="5 4" color="#a5573f" />
                 삭제
               </button>
             </div>
@@ -135,9 +144,7 @@ export function ChecklistItem({
         aria-label={item.done ? `${item.text} 완료 취소` : `${item.text} 완료하기`}
         disabled={landing}
         onClick={() => slotRef.current && onToggle(item.id, slotRef.current.getBoundingClientRect())}
-        className={`flex w-24 items-center justify-center border-l border-dashed border-line transition-colors sm:w-28 ${
-          item.done ? 'bg-sage-soft/60' : 'bg-oat/50 hover:bg-oat'
-        } focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-inset focus-visible:ring-sage`}
+        className="group flex w-24 items-center justify-center rounded-r-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sage sm:w-28"
       >
         <div
           ref={slotRef}
@@ -154,12 +161,32 @@ export function ChecklistItem({
               <DomeSticker sticker={sticker} size={SLOT_SIZE} sheen={justLanded} />
             </motion.div>
           ) : (
-            <div
-              className={`h-full w-full rounded-full border-2 border-dashed ${
-                landing ? 'border-sage bg-sage-soft/50' : 'border-beige'
-              } flex items-center justify-center text-2xl font-black text-beige`}
-            >
-              {!landing && '✓'}
+            // Only the spot where the sticker goes is marked, with a pencil-dashed circle.
+            <div className="relative flex h-full w-full items-center justify-center">
+              <SketchBorder
+                radius="50%"
+                color={landing ? 'var(--color-sage-deep)' : 'var(--color-graphite)'}
+                className={landing ? '' : 'opacity-60 transition-opacity group-hover:opacity-100'}
+              />
+              {!landing && (
+                <svg
+                  viewBox="0 0 24 24"
+                  width="24"
+                  height="24"
+                  className="opacity-40 transition-opacity group-hover:opacity-70"
+                  style={{ filter: 'url(#pencil)' }}
+                  aria-hidden
+                >
+                  <path
+                    d="M5 12.5l4.5 4.5L19 7.5"
+                    fill="none"
+                    stroke="var(--color-graphite)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              )}
             </div>
           )}
         </div>

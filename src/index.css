@@ -16,6 +16,7 @@
   --color-sage: #8dbb78;
   --color-sage-deep: #5f8b4e;
   --color-sage-soft: #e3edd9;
+  --color-graphite: #6f685b;
 }
 
 /* Typography rule: every element in the app uses Helvetica, Arial, sans-serif. */
@@ -47,15 +48,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ---------- Paper sheets ---------- */
+/* ---------- Paper sheets ----------
+   Flat sketchbook cards: the outline is a pencil <SketchBorder>, not a CSS border. */
 .paper {
   position: relative;
   background-color: var(--color-sheet);
-  border: 1px solid var(--color-line);
-  box-shadow:
-    0 1px 0 rgb(255 255 255 / 0.9) inset,
-    0 1px 2px rgb(110 90 55 / 0.06),
-    0 6px 16px -10px rgb(110 90 55 / 0.25);
 }
 
 /* ---------- Die-cut convex epoxy sticker ---------- */

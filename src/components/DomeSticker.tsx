@@ -28,6 +28,7 @@ export function DomeSticker({ sticker, size = 64, className = '', sheen = false 
   const blur = size * 0.05
   const rim = size * 0.025
   const height = size * 0.12
+  const gloss = sticker.gloss ?? 1
 
   return (
     <div
@@ -44,7 +45,7 @@ export function DomeSticker({ sticker, size = 64, className = '', sheen = false 
           <feSpecularLighting
             in="height"
             surfaceScale={height}
-            specularConstant={1.2}
+            specularConstant={1.2 * gloss}
             specularExponent={18}
             lightingColor="#ffffff"
             result="sheen"
@@ -55,7 +56,7 @@ export function DomeSticker({ sticker, size = 64, className = '', sheen = false 
           <feSpecularLighting
             in="height"
             surfaceScale={height}
-            specularConstant={1.6}
+            specularConstant={1.6 * gloss}
             specularExponent={70}
             lightingColor="#ffffff"
             result="glare"

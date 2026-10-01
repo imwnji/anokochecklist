@@ -4,13 +4,12 @@ import type { Sticker } from '../types'
 import { DomeSticker } from './DomeSticker'
 import { SLOT_SIZE } from './ChecklistItem'
 
-/** How much bigger the sticker gets at the closest point of the swoosh. */
-const ZOOM = 2.8
-
 export interface Burst {
   id: string
   itemId: string
   sticker: Sticker
+  /** Where the sticker peels off from (its tile in the sticker list), if visible. */
+  from?: DOMRect
   /** Bounding rect of the completion slot the sticker sticks to. */
   target: DOMRect
 }
@@ -23,20 +22,25 @@ interface Props {
 
 /**
  * Layer above the page for the stick animation. It sits outside the list so the
- * zoomed sticker isn't clipped by the row.
+ * zoomed sticker isn't clipped by anything.
  */
 export function StickerOverlay({ bursts, onPop, onLanded }: Props) {
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden" aria-hidden>
       {bursts.map((b) => (
-        <SwooshSticker key={b.id} burst={b} onPop={onPop} onLanded={onLanded} />
+        <FlyingSticker key={b.id} burst={b} onPop={onPop} onLanded={onLanded} />
       ))}
     </div>
   )
 }
 
-/** Right above its slot: swoosh up towards the viewer, then straight back down onto the slot. */
-function SwooshSticker({
+const center = (r: DOMRect) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 })
+
+/**
+ * Swooshes out of the sticker list towards the viewer (very close, very big),
+ * then without pausing swooshes away into the completion slot.
+ */
+function FlyingSticker({
   burst,
   onPop,
   onLanded,
@@ -54,9 +58,30 @@ function SwooshSticker({
   // and keep it running across the simulated remount.
   const started = useRef(false)
   const mounted = useRef(false)
-  // Rendered at the zoomed size (crisp) and scaled down to the slot size.
-  const [big] = useState(SLOT_SIZE * ZOOM)
-  const rest = 1 / ZOOM
+
+  // Flight geometry is fixed at launch so re-renders never reset it. The element sits on
+  // the slot; x/y are offsets from there. It is rendered at the closest (biggest) size so
+  // it stays crisp, and scaled down everywhere else.
+  const [geo] = useState(() => {
+    const vw = window.innerWidth
+    const vh = window.innerHeight
+    const big = Math.round(Math.min(vw, vh) * 0.55)
+    const end = center(burst.target)
+    const fromRect = burst.from ?? burst.target
+    const start = center(fromRect)
+    // Closest point: between the list and the slot, pulled towards the middle of the screen.
+    const apex = {
+      x: ((start.x + end.x) / 2 + vw / 2) / 2,
+      y: ((start.y + end.y) / 2 + vh / 2) / 2,
+    }
+    return {
+      big,
+      start: { x: start.x - end.x, y: start.y - end.y, scale: fromRect.width / big },
+      apex: { x: apex.x - end.x, y: apex.y - end.y },
+      endScale: SLOT_SIZE / big,
+    }
+  })
+  const { big, start, apex, endScale } = geo
 
   useEffect(() => {
     mounted.current = true
@@ -69,31 +94,34 @@ function SwooshSticker({
         cb.current.onLanded(burst)
         return
       }
-      // 1) Swoosh closer to the viewer
+      // 1) Swoosh out of the list, right up to the viewer
       await animate(
         el,
         {
-          scale: [rest, 1],
-          y: [0, -24],
-          rotate: [0, -7],
+          x: [start.x, apex.x],
+          y: [start.y, apex.y],
+          scale: [start.scale, 1],
+          rotate: [0, -8],
           filter: [
             'drop-shadow(0 2px 2px rgb(90 70 40 / 0.3))',
-            'drop-shadow(0 40px 30px rgb(90 70 40 / 0.28))',
+            'drop-shadow(0 50px 40px rgb(90 70 40 / 0.25))',
           ],
         },
-        { duration: 0.26, ease: [0.16, 1, 0.3, 1] },
+        // ends still moving, so there is no pause at the closest point
+        { duration: 0.3, ease: [0.2, 0.85, 0.55, 0.92] },
       )
       if (!mounted.current) return
-      // 2) …and straight back down onto the slot
+      // 2) …and straight on, swooshing away into the slot
       await animate(
         el,
         {
-          scale: rest,
+          x: 0,
           y: 0,
+          scale: endScale,
           rotate: 0,
           filter: 'drop-shadow(0 1px 1px rgb(90 70 40 / 0.3))',
         },
-        { duration: 0.24, ease: [0.55, 0, 0.9, 0.4] },
+        { duration: 0.34, ease: [0.4, 0.1, 0.8, 0.45] },
       )
       if (!mounted.current) return
       cb.current.onLanded(burst)
@@ -102,17 +130,19 @@ function SwooshSticker({
     return () => void (mounted.current = false)
   }, [])
 
-  const { target } = burst
+  const end = center(burst.target)
   return (
     <motion.div
       ref={ref}
       className="absolute"
       style={{
-        left: target.left + (target.width - big) / 2,
-        top: target.top + (target.height - big) / 2,
+        left: end.x - big / 2,
+        top: end.y - big / 2,
         width: big,
         height: big,
-        scale: rest,
+        x: start.x,
+        y: start.y,
+        scale: start.scale,
         willChange: 'transform, filter',
       }}
     >
