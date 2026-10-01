@@ -55,7 +55,8 @@ export function ChecklistItem({
     >
       {/* The to-do itself: a pill with no outline */}
       {editing ? (
-        <div className="relative flex h-10 min-w-0 flex-1 items-center rounded-full bg-sheet pl-5 pr-1 ring-2 ring-sage/60">
+        <div className="relative flex h-10 min-w-0 flex-1 items-center pl-5 pr-1">
+          <PaperFill editing />
           <input
             autoFocus
             defaultValue={item.text}
@@ -72,7 +73,7 @@ export function ChecklistItem({
               if (e.key === 'Escape') onCancelEdit(item.id)
             }}
             aria-label="할 일 입력"
-            className="min-w-0 flex-1 bg-transparent text-base font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-soft/60"
+            className="relative min-w-0 flex-1 bg-transparent text-base font-bold text-ink outline-none placeholder:font-normal placeholder:text-ink-soft/60"
           />
           <button
             type="button"
@@ -80,7 +81,7 @@ export function ChecklistItem({
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => onRemove(item.id)}
             aria-label="이 칸 지우기"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xl text-ink-soft transition hover:bg-oat hover:text-[#a5573f]"
+            className="relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xl text-ink-soft transition hover:bg-oat hover:text-[#a5573f]"
           >
             ×
           </button>
@@ -90,12 +91,13 @@ export function ChecklistItem({
           type="button"
           onClick={startEdit}
           aria-label={blank ? '빈 칸, 눌러서 할 일 쓰기' : `${item.text}, 눌러서 고치기`}
-          className={`flex h-10 min-w-0 flex-1 items-center rounded-full bg-sheet px-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
-            item.done ? 'cursor-default' : 'hover:bg-sheet/70'
+          className={`group/pill relative flex h-10 min-w-0 flex-1 items-center rounded-full px-5 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sage ${
+            item.done ? 'cursor-default' : ''
           }`}
         >
+          <PaperFill />
           <span
-            className={`truncate text-base font-bold ${
+            className={`relative truncate text-base font-bold ${
               blank
                 ? 'font-normal text-ink-soft/50'
                 : item.done
@@ -146,5 +148,23 @@ export function ChecklistItem({
         </div>
       </button>
     </motion.li>
+  )
+}
+
+/**
+ * The pill's paper: a separate layer so the soft, fibrous `#paper-edge` filter only touches
+ * the background (the text stays crisp). While writing, a faint sage tint marks the row.
+ */
+function PaperFill({ editing = false }: { editing?: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`pointer-events-none absolute inset-0 rounded-full transition-colors ${
+        editing
+          ? 'bg-[#fbfcf5] shadow-[0_0_0_2px_rgb(141_187_120/0.45)]'
+          : 'bg-sheet group-hover/pill:bg-[#fffef9]'
+      }`}
+      style={{ filter: 'url(#paper-edge)' }}
+    />
   )
 }

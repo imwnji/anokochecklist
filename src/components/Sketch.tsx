@@ -27,6 +27,22 @@ export function PencilFilters() {
         />
         <feComposite in="drawn" in2="grainMask" operator="in" />
       </filter>
+      {/*
+        Paper edge: fine fibrous noise nudges only the outline (a flat fill stays flat), then a
+        slight blur lets the edge fade softly into the page, like the rim of a paper cut-out.
+      */}
+      <filter id="paper-edge" x="-4%" y="-25%" width="108%" height="150%" colorInterpolationFilters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="5" result="fibres" />
+        <feDisplacementMap
+          in="SourceGraphic"
+          in2="fibres"
+          scale="4"
+          xChannelSelector="R"
+          yChannelSelector="G"
+          result="rough"
+        />
+        <feGaussianBlur in="rough" stdDeviation="0.9" />
+      </filter>
     </svg>
   )
 }
@@ -42,8 +58,7 @@ interface SketchBorderProps {
 }
 
 /**
- * Pencil-drawn dashed outline that fills its (position: relative) parent. A second,
- * fainter stroke slightly off-register mimics a line traced over twice.
+ * Pencil-drawn dashed outline that fills its (position: relative) parent.
  */
 export function SketchBorder({
   radius = 16,
@@ -67,20 +82,6 @@ export function SketchBorder({
         stroke={color}
         strokeWidth={strokeWidth}
         strokeDasharray={dash}
-        strokeLinecap="round"
-      />
-      <rect
-        x="0.8"
-        y="-0.6"
-        width="100%"
-        height="100%"
-        rx={radius}
-        fill="none"
-        stroke={color}
-        strokeOpacity={0.35}
-        strokeWidth={strokeWidth * 0.7}
-        strokeDasharray={dash}
-        strokeDashoffset={4}
         strokeLinecap="round"
       />
     </svg>
