@@ -26,6 +26,25 @@ public/
 영상은 원본에서 소리를 빼고 가로 640px로 줄인 것입니다:
 `ffmpeg -i 원본 -vf fps=30,scale=640:-2 -an -c:v libx264 -crf 23 -pix_fmt yuv420p -movflags +faststart after-xxx.mp4` (WebM은 `-c:v libvpx-vp9 -b:v 0 -crf 36`).
 
+## 맥 앱으로 쓰기 (개인용)
+
+Electron으로 감싼 맥 앱(`Anoko Checklist.app`)을 만들 수 있습니다. 로컬의 `public/media`·`public/fonts`가
+앱 안에 함께 들어가므로 **본인만 사용하고 공유하지 마세요.**
+
+```bash
+npm install
+npm run package:mac            # 맥에서: 이 맥의 칩에 맞는 앱을 만들고 Finder에서 보여줌
+ARCH=arm64,x64 npm run package:mac # 칩 지정 (arm64 = Apple Silicon, x64 = Intel)
+npm run app                    # 포장하지 않고 바로 앱 창으로 실행
+```
+
+- 앱은 `app://anoko` 전용 주소로 화면을 띄워서, 체크리스트·스티커 재고가 앱을 껐다 켜도 유지됩니다
+  (`~/Library/Application Support/Anoko Checklist`).
+- 만들어진 `Anoko Checklist.app`을 응용 프로그램 폴더로 옮기면 Launchpad·Dock에서 열 수 있습니다.
+- 내 맥에서 직접 만든 앱은 그대로 열립니다. 다른 곳에서 받은 앱(ad-hoc 서명)은 처음 열 때 macOS가 막으므로
+  **시스템 설정 → 개인정보 보호 및 보안 → "그래도 열기"**를 한 번 눌러 주세요.
+- 아이콘: `build/icon.svg` → `build/icon.icns`.
+
 ## 실행
 
 ```bash
@@ -38,6 +57,8 @@ npm test           # vitest 단위 테스트
 
 ## 화면 구성
 
+0. **오른쪽 위 버튼** — 눈 모양: 완료한 할 일 자동 숨김(붙은 뒤 잠시 보였다가 사라짐, 숨긴 개수 표시) ·
+   새로고침: 스티커 재고와 할 일을 모두 처음 상태로(한 번 더 눌러야 실행) · 스피커: 음소거.
 1. **스티커 판** — 종류마다 같은 스티커 5장 (붙은 스티커와 같은 크기). 웹에서는 10장이 한 줄, 좁은 화면(모바일)에서는 종류별로 5장씩 두 줄. 완료할 때마다 선택된 종류의 왼쪽 끝 장부터 (왼쪽 모서리가 들리며) 떼어지고,
    떼어낸 자리엔 뒷지 자국이 남습니다. 한 종류를 다 쓰면 다음 종류로 자동 전환되고, 다 쓴 종류에는
    새로고침 버튼이 떠서 누르면 다시 5장이 채워집니다.

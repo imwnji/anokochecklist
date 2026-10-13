@@ -5,6 +5,7 @@ import { ChecklistItem, SLOT_SIZE } from './components/ChecklistItem'
 import { Clock } from './components/Clock'
 import { EDGE_STYLE, PencilFilters, Surface } from './components/Sketch'
 import { StickerOverlay, type Burst } from './components/StickerOverlay'
+import { Toolbar } from './components/Toolbar'
 import { STICKER_SHEET_ID, StickerSheet } from './components/StickerSheet'
 import { VideoPopup, pickVideo, type VideoPopupState } from './components/VideoPopup'
 import { useChecklist } from './hooks/useChecklist'
@@ -18,6 +19,8 @@ export default function App() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [videoPopup, setVideoPopup] = useState<VideoPopupState | null>(null)
   const [justLanded, setJustLanded] = useState<Set<string>>(new Set())
+  // Just-completed rows stay visible a moment in auto-hide mode, so the sticker can be seen landing.
+  const [lingering, setLingering] = useState<Set<string>>(new Set())
   const [muted, setMuted] = useState(soundManager.muted)
   const sheetNudge = useAnimationControls()
 
@@ -30,6 +33,19 @@ export default function App() {
   const written = state.items.filter((i) => i.text)
   const doneCount = written.filter((i) => i.done).length
   const progress = written.length ? doneCount / written.length : 0
+  const visibleItems = state.hideDone
+    ? state.items.filter((i) => !i.done || landingIds.has(i.id) || lingering.has(i.id))
+    : state.items
+  const hiddenCount = state.items.length - visibleItems.length
+
+  const handleReset = () => {
+    setBursts([])
+    setVideoPopup(null)
+    setEditingId(null)
+    setJustLanded(new Set())
+    setLingering(new Set())
+    dispatch({ type: 'reset' })
+  }
 
   const handleToggle = (id: string, slotRect: DOMRect) => {
     const item = state.items.find((i) => i.id === id)
@@ -73,6 +89,16 @@ export default function App() {
     if (burst.sticker.video) setVideoPopup({ key: burst.id, video: burst.sticker.video })
     setBursts((b) => b.filter((x) => x.id !== burst.id))
     setJustLanded((s) => new Set(s).add(burst.itemId))
+    setLingering((s) => new Set(s).add(burst.itemId))
+    setTimeout(
+      () =>
+        setLingering((s) => {
+          const next = new Set(s)
+          next.delete(burst.itemId)
+          return next
+        }),
+      1800,
+    )
     setTimeout(
       () =>
         setJustLanded((s) => {
@@ -92,33 +118,14 @@ export default function App() {
   return (
     <>
       <PencilFilters />
-      <button
-        type="button"
-        onClick={toggleMute}
-        aria-pressed={muted}
-        aria-label={muted ? '소리 켜기' : '소리 끄기'}
-        className="fixed right-3 top-3 z-40 flex h-10 w-10 items-center justify-center rounded-full text-ink-soft transition hover:text-ink"
-      >
-        <svg
-          viewBox="0 0 24 24"
-          width="20"
-          height="20"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{ filter: 'url(#pencil)' }}
-          aria-hidden
-        >
-          <path d="M4 9v6h4l5 4V5L8 9H4z" />
-          {muted ? (
-            <path d="M17 9l5 6M22 9l-5 6" />
-          ) : (
-            <path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12" />
-          )}
-        </svg>
-      </button>
+      <div className="drag-strip" aria-hidden />
+      <Toolbar
+        hideDone={state.hideDone}
+        onToggleHideDone={() => dispatch({ type: 'setHideDone', hideDone: !state.hideDone })}
+        onReset={handleReset}
+        muted={muted}
+        onToggleMute={toggleMute}
+      />
 
       <main className="mx-auto flex w-full max-w-3xl flex-col gap-4 px-4 pb-16 pt-14">
         <Clock />
@@ -168,7 +175,7 @@ export default function App() {
           <Surface fill="bg-board" radius={36} />
           <ul className="flex flex-col gap-3">
             <AnimatePresence initial={false}>
-              {state.items.map((item) => (
+              {visibleItems.map((item) => (
                 <ChecklistItem
                   key={item.id}
                   item={item}
@@ -196,6 +203,9 @@ export default function App() {
               ))}
             </AnimatePresence>
           </ul>
+          {hiddenCount > 0 && (
+            <p className="mt-3 text-center text-sm text-ink-soft">완료한 할 일 {hiddenCount}개 숨김</p>
+          )}
           <div className="mt-2 flex justify-center">
             <button
               type="button"
