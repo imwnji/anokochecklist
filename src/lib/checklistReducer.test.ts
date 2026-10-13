@@ -3,7 +3,7 @@ import { STICKERS_PER_KIND, checklistReducer, createInitialState, stockOf } from
 import { DEFAULT_STICKER_ID } from './defaultStickers'
 import type { ChecklistState } from '../types'
 
-const base = (): ChecklistState => ({ items: [], customStickers: [], stock: {} })
+const base = (): ChecklistState => ({ items: [], customStickers: [], stock: {}, hideDone: false })
 const withRow = (text = 'a') => {
   let s = checklistReducer(base(), { type: 'addRow', id: 'a', now: 1 })
   s = checklistReducer(s, { type: 'edit', id: 'a', text })
@@ -43,6 +43,16 @@ describe('checklistReducer', () => {
     const empty = { ...withRow(), stock: { x: 0 } }
     expect(checklistReducer(empty, { type: 'complete', id: 'a', stickerId: 'x' })).toBe(empty)
     expect(stockOf(checklistReducer(empty, { type: 'restock', stickerId: 'x' }), 'x')).toBe(STICKERS_PER_KIND)
+  })
+
+  it('reset brings back five blank rows and a full sheet, keeping settings', () => {
+    let s = checklistReducer(withRow(), { type: 'complete', id: 'a', stickerId: 'default-horn' })
+    s = checklistReducer(s, { type: 'setHideDone', hideDone: true })
+    s = checklistReducer(s, { type: 'reset' })
+    expect(s.items).toHaveLength(5)
+    expect(s.items.every((i) => i.text === '' && !i.done)).toBe(true)
+    expect(stockOf(s, 'default-horn')).toBe(STICKERS_PER_KIND)
+    expect(s.hideDone).toBe(true)
   })
 
   it('falls back to the default sticker when a custom sticker is removed', () => {

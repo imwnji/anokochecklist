@@ -31,4 +31,6 @@ export interface ChecklistState {
   customStickers: Sticker[]
   /** Stickers left on the sheet per kind; a missing entry means a full sheet. */
   stock: Record<string, number>
+  /** Auto-hide mode: completed to-dos disappear from the board shortly after their sticker lands. */
+  hideDone: boolean
 }

@@ -13,6 +13,7 @@ export function loadState(): ChecklistState {
       items: Array.isArray(parsed.items) ? parsed.items : [],
       customStickers: Array.isArray(parsed.customStickers) ? parsed.customStickers : [],
       stock: parsed.stock && typeof parsed.stock === 'object' ? parsed.stock : {},
+      hideDone: parsed.hideDone === true,
     }
   } catch {
     return createInitialState()

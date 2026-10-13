@@ -6,3 +6,6 @@ dist
 public/fonts/
 # Copyrighted media (sticker art, sounds, videos): local only, never committed (see README)
 public/media/
+
+# Packaged desktop app (contains your local media)
+release/

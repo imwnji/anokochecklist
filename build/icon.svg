@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="dome" cx="0.38" cy="0.32" r="0.75">
+      <stop offset="0" stop-color="#b6d7a3"/>
+      <stop offset="1" stop-color="#7aaa64"/>
+    </radialGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="22" flood-color="#5a4628" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+  <!-- macOS icon grid: 824px rounded square centred on a 1024 canvas -->
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="#f7f2e8" filter="url(#shadow)"/>
+  <rect x="100" y="100" width="824" height="824" rx="185" fill="none" stroke="#e6dccb" stroke-width="6"/>
+  <!-- sticker spot + puffy sage sticker with a check -->
+  <circle cx="512" cy="520" r="250" fill="#ece2d0"/>
+  <g filter="url(#shadow)">
+    <circle cx="512" cy="512" r="232" fill="url(#dome)"/>
+    <path d="M400 520l78 78 150-170" fill="none" stroke="#fffdf8" stroke-width="58" stroke-linecap="round" stroke-linejoin="round"/>
+    <ellipse cx="452" cy="380" rx="140" ry="74" fill="url(#gloss)" transform="rotate(-24 452 380)"/>
+  </g>
+</svg>

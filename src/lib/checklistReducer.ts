@@ -15,6 +15,9 @@ export type ChecklistAction =
   | { type: 'restock'; stickerId: string }
   | { type: 'addSticker'; sticker: Sticker }
   | { type: 'removeSticker'; id: string }
+  | { type: 'setHideDone'; hideDone: boolean }
+  /** Start over: full sticker sheet and five blank rows (settings are kept). */
+  | { type: 'reset' }
 
 export const newId = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto
@@ -27,6 +30,7 @@ export const createInitialState = (): ChecklistState => ({
   items: Array.from({ length: DEFAULT_ROWS }, () => row()),
   customStickers: [],
   stock: {},
+  hideDone: false,
 })
 
 export const stockOf = (state: Pick<ChecklistState, 'stock'>, stickerId: string) =>
@@ -61,6 +65,10 @@ export function checklistReducer(state: ChecklistState, action: ChecklistAction)
         ...state,
         items: state.items.map((i) => (i.id === action.id ? { ...i, done: false, stickerId: undefined } : i)),
       }
+    case 'setHideDone':
+      return { ...state, hideDone: action.hideDone }
+    case 'reset':
+      return { ...createInitialState(), customStickers: state.customStickers, hideDone: state.hideDone }
     case 'restock':
       return { ...state, stock: { ...state.stock, [action.stickerId]: STICKERS_PER_KIND } }
     case 'addSticker':
