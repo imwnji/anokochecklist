@@ -1,7 +1,8 @@
 // Packages the built app (dist/ + electron/) as a macOS .app, zipped, for personal use.
 //
-//   npm run package:mac            → release/Anoko Checklist-darwin-{arm64,x64}.zip
-//   ARCH=arm64 npm run package:mac → Apple Silicon only
+//   npm run package:mac            → on a Mac: release/…-darwin-<this Mac's chip>/Anoko Checklist.app
+//                                    elsewhere: both arm64 (Apple Silicon) and x64 (Intel)
+//   ARCH=arm64,x64 npm run package:mac → pick explicitly
 //
 // The copyrighted media and font live in git-ignored public/ folders and are bundled from
 // your local copy, so the resulting app is for your own use only — don't share it.
@@ -16,7 +17,11 @@ import path from 'node:path'
 const root = path.resolve(import.meta.dirname, '..')
 const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'))
 const electronVersion = JSON.parse(readFileSync(path.join(root, 'node_modules/electron/package.json'), 'utf8')).version
-const arch = process.env.ARCH ? process.env.ARCH.split(',') : ['arm64', 'x64']
+const arch = process.env.ARCH
+  ? process.env.ARCH.split(',')
+  : process.platform === 'darwin'
+    ? [process.arch]
+    : ['arm64', 'x64']
 
 for (const p of ['dist/index.html', 'dist/media', 'dist/fonts']) {
   if (!existsSync(path.join(root, p))) {
@@ -71,5 +76,10 @@ for (const dir of appPaths) {
     // -y keeps the framework symlinks intact
     execFileSync('zip', ['-qry', zip, `${pkg.productName}.app`], { cwd: dir })
   }
-  console.log(`✓ ${path.relative(root, zip)}`)
+  console.log(`✓ ${path.relative(root, appPath)}  (+ ${path.basename(zip)})`)
+}
+
+if (process.platform === 'darwin' && appPaths.length === 1) {
+  // Show the finished app in Finder, ready to drag into Applications.
+  execFileSync('open', ['-R', path.join(appPaths[0], `${pkg.productName}.app`)])
 }

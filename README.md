@@ -33,15 +33,16 @@ Electron으로 감싼 맥 앱(`Anoko Checklist.app`)을 만들 수 있습니다.
 
 ```bash
 npm install
-npm run package:mac            # release/Anoko Checklist-darwin-arm64.zip (Apple Silicon), -x64.zip (Intel)
-ARCH=arm64 npm run package:mac # 한쪽만
+npm run package:mac            # 맥에서: 이 맥의 칩에 맞는 앱을 만들고 Finder에서 보여줌
+ARCH=arm64,x64 npm run package:mac # 칩 지정 (arm64 = Apple Silicon, x64 = Intel)
 npm run app                    # 포장하지 않고 바로 앱 창으로 실행
 ```
 
 - 앱은 `app://anoko` 전용 주소로 화면을 띄워서, 체크리스트·스티커 재고가 앱을 껐다 켜도 유지됩니다
   (`~/Library/Application Support/Anoko Checklist`).
-- Apple 개발자 서명 없이 ad-hoc 서명만 되어 있어, 처음 열 때 macOS가 확인되지 않은 앱이라고 막습니다.
-  **시스템 설정 → 개인정보 보호 및 보안 → "그래도 열기"**를 한 번 누르면 이후로는 그냥 열립니다.
+- 만들어진 `Anoko Checklist.app`을 응용 프로그램 폴더로 옮기면 Launchpad·Dock에서 열 수 있습니다.
+- 내 맥에서 직접 만든 앱은 그대로 열립니다. 다른 곳에서 받은 앱(ad-hoc 서명)은 처음 열 때 macOS가 막으므로
+  **시스템 설정 → 개인정보 보호 및 보안 → "그래도 열기"**를 한 번 눌러 주세요.
 - 아이콘: `build/icon.svg` → `build/icon.icns`.
 
 ## 실행
